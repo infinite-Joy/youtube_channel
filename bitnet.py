@@ -6,40 +6,50 @@ import numpy as np
 
 class BitNetQuantizationAnimation(Scene):
     def construct(self):
-        ## Scene 1: Introduction - The Quantization Journey
-        #self.scene1_introduction()
-        #self.wait(1)
-        #self.clear()
+        # Scene 1: Introduction - The Quantization Journey
+        self.scene1_introduction()
+        self.wait(1)
+        self.clear()
         
-        ## Scene 2: The Problem with 2-bit Quantization
-        #self.scene2_problem_with_2bit()
-        #self.wait(1)
-        #self.clear()
+        # Scene 2: The Problem with 2-bit Quantization
+        self.scene2_problem_with_2bit()
+        self.wait(1)
+        self.clear()
         
-        ## Scene 3: The Ternary Solution Discovery
-        #self.scene3_ternary_solution()
-        #self.wait(1)
-        #self.clear()
+        # Scene 3: The Ternary Solution Discovery
+        self.scene3_ternary_solution()
+        self.wait(1)
+        self.clear()
         
-        ## Scene 4: Matrix Multiplication Magic
-        #self.scene4_matrix_multiplication()
-        #self.wait(1)
-        #self.clear()
+        # Scene 4: Matrix Multiplication Magic
+        self.scene4_matrix_multiplication()
+        self.wait(1)
+        self.clear()
         
-        ## Scene 6: Weight Quantization Function
-        #self.scene6_weight_quantization()
-        #self.wait(1)
-        #self.clear()
+        # Scene 6: Weight Quantization Function
+        self.scene6_weight_quantization()
+        self.wait(1)
+        self.clear()
         
-        ## Scene 7: Activation Quantization Function
-        #self.scene7_activation_quantization()
-        #self.wait(1)
-        #self.clear()
+        # Scene 7: Activation Quantization Function
+        self.scene7_activation_quantization()
+        self.wait(1)
+        self.clear()
         
-        # Scene 8: BitLinear Architecture
+        #  Scene 8: BitLinear Architecture
         self.transformer_architecture_with_bitlinear()
         self.wait(1)
         self.clear()
+
+        # Scene 9: hybrid activations in bitnet
+        self.hybrid_activations_in_bitnet()
+        self.wait(1)
+        self.clear()
+        
+    def print_progress(self, curr, total):
+        expansion = 30
+        progress = ['#']*curr*expansion + ['.']*(total-curr)*expansion
+        print(progress)
         
     def scene1_introduction(self):
         """Scene 1: Introduction - The Quantization Journey"""
@@ -628,7 +638,7 @@ class BitNetQuantizationAnimation(Scene):
 
     def transformer_architecture_with_bitlinear(self):
         # Title
-        title = Text("Transformer Architecture with Bilinear Blocks", font_size=36)
+        title = Text("Transformer Architecture with Bitlinear Blocks", font_size=36)
         title.to_edge(UP, buff=0.5)
         self.play(Write(title))
         self.wait(1)
@@ -715,7 +725,9 @@ class BitNetQuantizationAnimation(Scene):
         )
         
         # Move MHA to center and expand
-        self.play(self.mha_group.animate.move_to(ORIGIN).scale(0.8))
+        self.play(self.mha_group.animate.move_to(ORIGIN).scale(2))
+        self.wait(2)
+        self.clear()
         
         # Create expanded view
         # Input (top)
@@ -935,7 +947,16 @@ class BitNetQuantizationAnimation(Scene):
         )
         
         # Highlight FFN
-        self.play(ffn_group.animate.set_stroke(YELLOW, width=4))
+        # self.play(ffn_group.animate.set_stroke(YELLOW, width=4))
+        self.play([
+            FadeOut(input_group),
+            FadeOut(mha_group),
+            FadeOut(output_group),
+            FadeOut(arrow1),
+            FadeOut(arrow2),
+            FadeOut(arrow3),
+        ])
+        self.play(ffn_group.animate.move_to(ORIGIN).scale(3))
 
     def expand_feedforward_network(self):
         # Fade out other components
@@ -1077,3 +1098,355 @@ class BitNetQuantizationAnimation(Scene):
             ffn_replacement_text.animate.scale(1.2).set_color(WHITE),
             run_time=1
         )
+
+    def hybrid_activations_in_bitnet(self):
+        # Title
+        title = Text("Hybrid Activations in BitNet", font_size=36)
+        title.to_edge(UP, buff=0.5)
+        self.play(Write(title))
+        self.wait(1)
+        
+        # Create the main flow
+        self.create_main_architecture(title)
+        self.wait(2)
+        
+        # Expand multihead attention
+        self.expand_multihead_attention_activations()
+        self.wait(3)
+        
+        # Go back to main architecture and expand FFN
+        self.show_main_architecture_again()
+        self.wait(2)
+        
+        # Expand feed forward network
+        # self.expand_feedforward_network_activations()
+        # self.wait(3)
+
+    def expand_multihead_attention_activations(self):
+        # Clear and setup for attention detail
+        # self.clear()
+        self.play(
+            FadeOut(self.input_group),
+            FadeOut(self.ffn_group),
+            FadeOut(self.output_group),
+            FadeOut(self.main_arrows)
+        )
+
+        # Move MHA to center and expand
+        self.play(self.mha_group.animate.move_to(ORIGIN).scale(2))
+        self.wait(2)
+        self.clear()
+        
+        # Title
+        title = Text("Multi-Head Attention - Activation Flow", font_size=36)
+        title.to_edge(UP, buff=0.5)
+        self.play(Write(title))
+        
+        # Input activations
+        input_box = Rectangle(width=2.5, height=0.5, color=BLUE, fill_opacity=0.3)
+        input_text = Text("Input Activations", font_size=16)
+        input_group = VGroup(input_box, input_text).shift(UP * 2.5)
+
+        # RMS Norm 1
+        rms1_box = Rectangle(width=2.5, height=0.5, color=GRAY, fill_opacity=0.3)
+        rms1_text = Text("RMS Norm", font_size=16)
+        rms1_group = VGroup(rms1_box, rms1_text).shift(UP * 1.2)
+        
+        # 4-bit Quantization
+        quant4_box = Rectangle(width=2.5, height=0.5, color=RED, fill_opacity=0.2)
+        quant4_text = Text("4-bit Quantization", font_size=14, color=RED)
+        quant4_group = VGroup(quant4_box, quant4_text).shift(UP * 1.85)
+        
+        # Attention computation
+        attn_box = Rectangle(width=2.5, height=0.6, color=GREEN, fill_opacity=0.3)
+        attn_text = Text("Attention", font_size=16)
+        attn_group = VGroup(attn_box, attn_text).shift(UP * 0.5)
+        
+        # RMS Norm 2
+        rms2_box = Rectangle(width=2.5, height=0.5, color=GRAY, fill_opacity=0.3)
+        rms2_text = Text("RMS Norm", font_size=16)
+        rms2_group = VGroup(rms2_box, rms2_text).shift(DOWN * 0.3)
+
+        # TopK Sparsification
+        topk_box = Rectangle(width=2.5, height=0.5, color=YELLOW, fill_opacity=0.3)
+        topk_text = Text("TopK Sparsification", font_size=14, color=RED)
+        topk_group = VGroup(topk_box, topk_text).shift(DOWN * 1.9)
+        
+        # 8-bit Quantization
+        quant8_box = Rectangle(width=2.5, height=0.5, color=RED, fill_opacity=0.2)
+        quant8_text = Text("8-bit Quantization", font_size=14, color=RED)
+        quant8_group = VGroup(quant8_box, quant8_text).shift(DOWN * 1.1)
+        
+        # Output
+        output_box = Rectangle(width=2.5, height=0.5, color=BLUE, fill_opacity=0.3)
+        output_text = Text("Output", font_size=16)
+        output_group = VGroup(output_box, output_text).shift(DOWN * 2.7)
+        
+        # Create all elements
+        elements = [input_group, rms1_group, quant4_group, attn_group,
+                    rms2_group, topk_group, quant8_group, output_group]
+        
+        # Animate creation
+        for element in elements:
+            self.play(Create(element), run_time=0.5)
+        
+        ## Create arrows
+        #main_flow_arrows = [
+        #    Arrow(input_group.get_bottom(), quant4_group.get_top(), buff=0.05),
+        #    Arrow(quant4_group.get_bottom(), rms1_group.get_top(), buff=0.05),
+        #    Arrow(rms1_group.get_bottom(), attn_group.get_top(), buff=0.05),
+        #    Arrow(attn_group.get_bottom(), rms2_group.get_top(), buff=0.05),
+        #    Arrow(rms2_group.get_bottom(), quant8_group.get_top(), buff=0.05),
+        #    Arrow(quant8_group.get_bottom(), topk_group.get_top(), buff=0.05),
+        #    Arrow(topk_group.get_bottom(), output_group.get_top(), buff=0.05)
+        #]
+        
+        ## Side arrows for weights
+        #weight_arrows = [
+        #    Arrow(weights_group.get_bottom(), dequant_group.get_top(), buff=0.05),
+        #    Arrow(dequant_group.get_right(), attn_group.get_left(), buff=0.1)
+        #]
+        
+        ## Animate arrows
+        #for arrow in main_flow_arrows + weight_arrows:
+        #    self.play(Create(arrow), run_time=0.3)
+        
+        # Add activation flow indicators
+        flow_text = Text("Activation Flow in Multi-Head Attention", font_size=20, color=YELLOW)
+        flow_text.to_edge(DOWN, buff=0.3)
+        self.play(Write(flow_text))
+        
+        # Highlight the hybrid quantization
+        self.play(
+            quant4_group.animate.set_stroke(YELLOW, width=2),
+            quant8_group.animate.set_stroke(YELLOW, width=2),
+            run_time=1
+        )
+
+
+class BitNetFFNNetworkActs(MovingCameraScene):
+    def construct(self):
+
+    # def expand_feedforward_network_activations(self):
+        # Clear and setup for FFN detail
+        # self.clear()
+        
+        # Title
+        title = Text("Feed Forward Network - Activation Flow", font_size=36)
+        title.to_edge(UP, buff=0.5)
+        self.play(Write(title))
+
+        # Input activations
+        input_box = Rectangle(width=2.5, height=0.4, color=BLUE, fill_opacity=0.3)
+        input_text = Text("MHA Activations", font_size=16)
+        input_group = VGroup(input_box, input_text).shift(UP * 2.5)
+
+        # RMS Norm (left)
+        rms_left_box = Rectangle(width=2, height=0.4, color=GRAY, fill_opacity=0.3)
+        rms_left_text = Text("RMS Norm", font_size=14)
+        rms_left_group = VGroup(rms_left_box, rms_left_text).shift(UP * 1.9)
+
+        # 4-bit Quantization (left)
+        quant4_left_box = Rectangle(width=2, height=0.4, color=RED, fill_opacity=0.2)
+        quant4_left_text = Text("4-bit Quantization", font_size=12, color=RED)
+        quant4_left_group = VGroup(quant4_left_box, quant4_left_text).shift(UP * 1.3)
+        
+        # Up projection
+        up_box = Rectangle(width=1.5, height=0.4, color=BLUE, fill_opacity=0.3)
+        up_text = Text("Up", font_size=14)
+        up_group = VGroup(up_box, up_text).shift(LEFT*1 + UP * 0.5)
+        
+        # Gate projection  
+        gate_box = Rectangle(width=1.5, height=0.4, color=BLUE, fill_opacity=0.3)
+        gate_text = Text("Gate", font_size=14)
+        gate_group = VGroup(gate_box, gate_text).shift(RIGHT * 2 + UP * 0.5)
+        
+        # ReLU^2 activation
+        relu_box = Rectangle(width=2, height=0.4, color=GREEN, fill_opacity=0.3)
+        relu_text = Text("ReLU²", font_size=14, color=RED)
+        relu_group = VGroup(relu_box, relu_text).shift(RIGHT * 2 + DOWN*0.3)
+        
+        # Element-wise multiply symbol
+        multiply_symbol = Text("⊗", font_size=30, color=YELLOW)
+        multiply_symbol.shift(DOWN * 1)
+
+        # RMS Norm (right)
+        rms_right_box = Rectangle(width=2, height=0.4, color=GRAY, fill_opacity=0.3)
+        rms_right_text = Text("RMS Norm", font_size=14)
+        rms_right_group = VGroup(rms_right_box, rms_right_text).shift(DOWN * 1.5)
+
+        # 8-bit Quantization (right)
+        quant8_right_box = Rectangle(width=2, height=0.4, color=RED, fill_opacity=0.2)
+        quant8_right_text = Text("8-bit Quantization", font_size=12, color=RED)
+        quant8_right_group = VGroup(quant8_right_box, quant8_right_text).shift(DOWN * 2)
+
+        # Down projection
+        down_box = Rectangle(width=2, height=0.4, color=BLUE, fill_opacity=0.3)
+        down_text = Text("Down", font_size=14)
+        down_group = VGroup(down_box, down_text).shift(DOWN * 2.5)
+        
+        # Final output
+        final_output_box = Rectangle(width=2, height=0.4, color=RED, fill_opacity=0.3)
+        final_output_text = Text("Output", font_size=14)
+        final_output_group = VGroup(final_output_box, final_output_text).shift(DOWN * 3)
+
+        # Store all elements for reference
+        self.ffn_elements = {
+            'input': input_group,
+            'rms_left': rms_left_group,
+            'quant4': quant4_left_group,
+            'up': up_group,
+            'gate': gate_group,
+            'relu': relu_group,
+            'multiply': multiply_symbol,
+            'rms_right': rms_right_group,
+            'quant8': quant8_right_group,
+            'down': down_group,
+            'output': final_output_group
+        }
+        
+        # Create all elements
+        all_elements = [input_group, rms_left_group, quant4_left_group, up_group, gate_group,
+                    relu_group, multiply_symbol, rms_right_group, quant8_right_group,
+                    down_group, final_output_group, ]
+
+        for element in all_elements:
+            element.set_opacity(0.2)  # Make them barely visible
+            self.add(element)
+
+        # Create arrows
+        arrows = [
+            Arrow(input_group.get_bottom(), rms_left_group.get_top(), buff=0.05),
+            Arrow(rms_left_group.get_bottom(), quant4_left_group.get_top(), buff=0.05),
+            Arrow(quant4_left_group.get_bottom() + LEFT*0.5, up_group.get_top(), buff=0.05),
+            Arrow(quant4_left_group.get_bottom() + RIGHT*0.5, gate_group.get_top(), buff=0.05),
+            Arrow(gate_group.get_bottom(), relu_group.get_top(), buff=0.05),
+            Arrow(up_group.get_bottom() + DOWN*0.2, multiply_symbol.get_top() + LEFT*0.3, buff=0.05),
+            Arrow(relu_group.get_bottom() + DOWN*0.2, multiply_symbol.get_top() + RIGHT*0.3, buff=0.05),
+            Arrow(multiply_symbol.get_bottom(), rms_right_group.get_top(), buff=0.05),
+            Arrow(rms_right_group.get_bottom(), quant8_right_group.get_top(), buff=0.05),
+            Arrow(quant8_right_group.get_bottom(), down_group.get_top(), buff=0.05),
+            Arrow(down_group.get_bottom(), final_output_group.get_top(), buff=0.05)
+        ]
+        
+        # Add arrows but make them transparent initially
+        for arrow in arrows:
+            arrow.set_opacity(0.2)
+            self.add(arrow)
+        
+        # Now go through each component with zoom and explanation
+        self.zoom_and_explain_ffn_components(arrows)
+
+    def zoom_and_explain_ffn_components(self, arrows):
+        """Zoom into each component and explain it step by step"""
+        
+        # Component explanations
+        explanations = {
+            'input': "Multi-Head Attention activations flow into the FFN",
+            'rms_left': "RMS Normalization stabilizes activations before quantization",
+            'quant4': "4-bit quantization reduces precision for efficiency",
+            'up': "Up projection expands hidden dimensions",
+            'gate': "Gate projection creates gating values",
+            'relu': "ReLU² activation (element-wise square of ReLU)",
+            'multiply': "Element-wise multiplication of Up and Gate results",
+            'rms_right': "Second RMS Norm before final quantization",
+            'quant8': "8-bit quantization for output activations",
+            'down': "Down projection reduces dimensions back to model size",
+            'output': "Final FFN output ready for next layer"
+        }
+        
+        # Define zoom parameters for each component
+        zoom_configs = [
+            ('input', 1.8, UP * 2.5),
+            ('rms_left', 2.0, UP * 1.9),
+            ('quant4', 2.0, UP * 1.3),
+            ('up', 2.2, LEFT*1 + UP * 0.5),
+            ('gate', 2.2, RIGHT * 2 + UP * 0.5),
+            ('relu', 2.0, RIGHT * 2 + DOWN*0.3),
+            ('multiply', 2.5, DOWN * 1),
+            ('rms_right', 2.0, DOWN * 1.5),
+            ('quant8', 2.0, DOWN * 2),
+            ('down', 2.0, DOWN * 2.5),
+            ('output', 1.8, DOWN * 3)
+        ]
+        
+        for i, (component, zoom_factor, focus_point) in enumerate(zoom_configs):
+            ## Highlight current component
+            self.play(
+                self.ffn_elements[component].animate.set_opacity(1.0).set_stroke(YELLOW, width=1),
+                run_time=0.5
+            )
+            
+            # Show relevant arrows
+            if i < len(arrows):
+                if i == 0:  # First arrow (input to rms_left)
+                    self.play(arrows[0].animate.set_opacity(1.0), run_time=0.3)
+                elif component == 'up':  # Show both arrows to up and gate
+                    self.play(
+                        arrows[2].animate.set_opacity(1.0),
+                        arrows[3].animate.set_opacity(1.0),
+                        run_time=0.3
+                    )
+                elif component == 'multiply':  # Show arrows from up and relu to multiply
+                    self.play(
+                        arrows[5].animate.set_opacity(1.0),
+                        arrows[6].animate.set_opacity(1.0),
+                        run_time=0.3
+                    )
+                else:
+                    # Show next arrow
+                    if i < len(arrows):
+                        arrow_idx = min(i, len(arrows) - 1)
+                        if arrow_idx < len(arrows):
+                            self.play(arrows[arrow_idx].animate.set_opacity(1.0), run_time=0.3)
+            
+            # Zoom in on the component
+            self.play(
+                self.camera.frame.animate.scale(1/zoom_factor).move_to(focus_point),
+                run_time=1
+            )
+            
+            # Add explanation text
+            explanation_text = Text(
+                explanations[component], 
+                font_size=8, 
+                color=WHITE
+            ).to_edge(DOWN, buff=0.5)
+            
+            self.play(Write(explanation_text), run_time=1)
+            self.wait(1.5)
+            
+            # Remove explanation and zoom out
+            self.play(FadeOut(explanation_text), run_time=0.5)
+            self.play(
+                self.camera.frame.animate.scale(zoom_factor).move_to(ORIGIN),
+                run_time=1
+            )
+            
+            # Dim the current component
+            self.play(
+                self.ffn_elements[component].animate.set_opacity(0.7).set_stroke(WHITE, width=1),
+                run_time=0.3
+            )
+        
+        # Final overview - show all components and arrows at full opacity
+        all_elements = list(self.ffn_elements.values())
+        self.play(
+            *[element.animate.set_opacity(1.0) for element in all_elements],
+            *[arrow.animate.set_opacity(1.0) for arrow in arrows],
+            run_time=1
+        )
+        
+        # Highlight hybrid quantization strategy
+        self.play(
+            self.ffn_elements['quant4'].animate.set_stroke(YELLOW, width=2),
+            self.ffn_elements['quant8'].animate.set_stroke(YELLOW, width=2),
+            run_time=1
+        )
+        
+        # Add final explanation text
+        explanation = Text("Hybrid Quantization: 4-bit for Up/Gate, 8-bit for Output", 
+                         font_size=16, color=YELLOW)
+        explanation.to_edge(DOWN, buff=0.3)
+        self.play(Write(explanation))
+        self.wait(2)
