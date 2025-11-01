@@ -3875,4 +3875,4 @@ This elegant formulation is why DDPM works so well in practice!
 """
 
 # To render:
-# manim -pqh ddpm_gaussian_sampling.py DDPMGaussianSampling
+# python -m manim -pql ddpm.py DDPMGaussianSampling
