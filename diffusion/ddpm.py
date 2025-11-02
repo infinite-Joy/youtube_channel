@@ -3378,23 +3378,23 @@ class DDPMGaussianSampling(Scene):
         self.show_title()
         
         # Part 1: Gaussian Parameters Derivation
-        self.show_bayes_flip()
-        self.show_gaussian_pdf()
-        self.show_posterior_as_gaussians()
-        self.show_expanding_terms()
-        self.show_completing_square()
-        self.show_grouping_terms()
-        self.show_removing_constant()
-        self.show_factoring_denominators()
-        self.show_simplification()
-        self.show_final_gaussian_form()
-        self.show_reparameterization()
-        self.show_mean_derivation()
-        self.show_final_mean_form()
+        eq_74 = self.show_bayes_flip()
+        eq_76 = self.show_gaussian_pdf(eq_74)
+        eq_75 = self.show_posterior_as_gaussians(eq_74, eq_76)
+        #self.show_expanding_terms()
+        #self.show_completing_square()
+        #self.show_grouping_terms()
+        #self.show_removing_constant()
+        #self.show_factoring_denominators()
+        #self.show_simplification()
+        #self.show_final_gaussian_form()
+        #self.show_reparameterization()
+        #self.show_mean_derivation()
+        #self.show_final_mean_form()
         
-        # Part 2: Sampling Algorithm
-        self.show_sampling_algorithm()
-        self.show_algorithm_walkthrough()
+        ## Part 2: Sampling Algorithm
+        #self.show_sampling_algorithm()
+        #self.show_algorithm_walkthrough()
         
     def show_title(self):
         title = Text("DDPM: Gaussian Parameters & Sampling", font_size=48, color=BLUE)
@@ -3407,46 +3407,87 @@ class DDPMGaussianSampling(Scene):
         self.play(FadeOut(title), FadeOut(subtitle))
     
     def show_bayes_flip(self):
-        desc = Text("Flipping the Posterior using Bayes Rule", font_size=36, color=YELLOW)
-        desc.to_edge(UP)
+        # desc.to_edge(UP)
+
+        eq_73 = MathTex(
+            r"\sum_{t=2}^T L_{t-1} = \sum_{t=2}^T \mathbb{E}_{q(x_t,x_{t-1}|x_0)}\left[\log \frac{p_\theta(x_{t-1}|x_t)}{q(x_{t-1}|x_t,x_0)}\right]",
+            font_size=50,
+            color=PURPLE
+        ).shift(UP*1)
+
+        desc1 = Text("Perfect denoising process in the equation", font_size=32, color=GREEN)
+        desc1.next_to(eq_73, DOWN, buff=0.5)
+
+        print(len(eq_73[0]))
+        box1 = SurroundingRectangle(eq_73[0][45:58], color=RED, buff=0.05)  # denominator of first fraction
+
         
         eq_74 = MathTex(
             r"q(x_{t-1}|x_t, x_0) = \frac{q(x_t|x_{t-1}, x_0)q(x_{t-1}|x_0)}{q(x_t|x_0)}",
-            font_size=40
+            font_size=60
         )
+        eq_74.next_to(eq_73, DOWN, buff=1)
+
+        desc2 = Text("Flipping the Posterior using Bayes Rule", font_size=30, color=GREEN)
+        desc2.next_to(eq_74, DOWN, buff=0.5)
+
+        self.play(Write(eq_73))
+        self.wait(1)
         
-        self.play(Write(desc))
+        self.play(Write(desc1))
+        self.play(Write(box1))
+        self.wait(1)
+
+        self.play(FadeOut(desc1))
         self.play(Write(eq_74))
+        self.wait(1)
+
+        self.play(Write(desc2))
         self.wait(2)
-        self.play(FadeOut(desc), FadeOut(eq_74))
+
+        self.play(FadeOut(desc2), FadeOut(eq_73), FadeOut(box1))
+        self.play(eq_74.animate.shift(UP * 3))
+
+        return eq_74
     
-    def show_gaussian_pdf(self):
-        desc = Text("Gaussian Probability Density Function", font_size=36, color=YELLOW)
-        desc.to_edge(UP)
+    def show_gaussian_pdf(self, eq_74):
+        desc = Text("Gaussian Probability Density Function", font_size=30, color=GREEN)
+        desc.next_to(eq_74, DOWN, buff=0.5)
+        # desc.to_edge(UP)
         
         eq_76 = MathTex(
             r"f(x) = \frac{1}{\sqrt{2\pi\sigma^2}} e^{-\frac{(x-\mu)^2}{2\sigma^2}}",
-            font_size=48
+            font_size=30
         )
+        eq_76.next_to(desc, DOWN, buff=0.5)
         
         self.play(Write(desc))
         self.play(Write(eq_76))
         self.wait(2)
-        self.play(FadeOut(desc), FadeOut(eq_76))
+        self.play(FadeOut(desc))
+
+        return eq_76
     
-    def show_posterior_as_gaussians(self):
-        desc = Text("Writing Posterior as Product of Gaussians", font_size=36, color=YELLOW)
-        desc.to_edge(UP)
+    def show_posterior_as_gaussians(self, eq_74, eq_76):
+        # desc.to_edge(UP)
         
         eq_75 = MathTex(
-            r"= \frac{\mathcal{N}(x_t; \sqrt{\alpha_t}x_{t-1}, (1-\alpha_t)I) \mathcal{N}(x_{t-1}; \sqrt{\bar{\alpha}_{t-1}}x_0, (1-\bar{\alpha}_{t-1})I)}{\mathcal{N}(x_t; \sqrt{\bar{\alpha}_t}x_0, (1-\bar{\alpha}_t)I)}",
-            font_size=32
+            r"q(x_{t-1}|x_t, x_0) = \frac{\mathcal{N}(x_t; \sqrt{\alpha_t}x_{t-1}, (1-\alpha_t)I) \mathcal{N}(x_{t-1}; \sqrt{\bar{\alpha}_{t-1}}x_0, (1-\bar{\alpha}_{t-1})I)}{\mathcal{N}(x_t; \sqrt{\bar{\alpha}_t}x_0, (1-\bar{\alpha}_t)I)}",
+            font_size=40
         )
+
+        desc = Text("Writing Posterior as Product of Gaussians", font_size=30, color=GREEN)
+        desc.next_to(eq_75, DOWN, buff=1.0)
         
+        self.play(ReplacementTransform(eq_74, eq_75))
+        # self.play(Write(eq_75))
+        self.play(FadeOut(eq_76))
+        self.wait(1)
         self.play(Write(desc))
-        self.play(Write(eq_75))
         self.wait(3)
-        self.play(FadeOut(desc), FadeOut(eq_75))
+        self.play(FadeOut(desc))
+
+        return eq_75
     
     def show_expanding_terms(self):
         desc = Text("Expanding as Exponentials", font_size=36, color=YELLOW)
@@ -3617,7 +3658,7 @@ class DDPMGaussianSampling(Scene):
             font_size=40
         ).shift(UP*1)
         
-        arrow = MathTex(r"\Downarrow", font_size=48).next_to(eq_14, DOWN, buff=0.3)
+        arrow = Arrow(eq_14.get_bottom(), eq_14.get_bottom() + DOWN*0.6, color=YELLOW, buff=0.1, stroke_width=6)
         
         eq_93 = MathTex(
             r"\Rightarrow x_0 = \frac{x_t - \sqrt{1-\bar{\alpha}_t}\epsilon_0}{\sqrt{\bar{\alpha}_t}}",
@@ -3675,7 +3716,7 @@ class DDPMGaussianSampling(Scene):
         
         # Create algorithm box
         algo_code = Code(
-            code="""
+            code_string="""
 1: x_T ~ N(0, I)
 2: for t = T, ..., 1 do
 3:   z ~ N(0, I) if t > 1, else z = 0
@@ -3684,11 +3725,11 @@ class DDPMGaussianSampling(Scene):
 6: return x_0
             """.strip(),
             language="python",
-            font="Monospace",
-            font_size=24,
+            # font="Monospace",
+            # font_size=24,
             background="window",
-            insert_line_no=False,
-            style="monokai"
+            add_line_numbers =False,
+            formatter_style="monokai"
         ).scale(0.8)
         
         self.play(Write(title))
