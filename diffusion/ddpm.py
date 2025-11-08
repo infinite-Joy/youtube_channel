@@ -3378,16 +3378,17 @@ class DDPMGaussianSampling(Scene):
         self.show_title()
         
         # Part 1: Gaussian Parameters Derivation
-        eq_74 = self.show_bayes_flip()
-        eq_76 = self.show_gaussian_pdf(eq_74)
-        eq_75 = self.show_posterior_as_gaussians(eq_74, eq_76)
-        #self.show_expanding_terms()
-        #self.show_completing_square()
-        #self.show_grouping_terms()
-        #self.show_removing_constant()
-        #self.show_factoring_denominators()
-        #self.show_simplification()
-        #self.show_final_gaussian_form()
+        eq_74, eq_21 = self.show_bayes_flip()
+        eq_75 = self.show_posterior_as_gaussians(eq_74, eq_21)
+        self.show_gaussian_pdf(eq_75)
+        prop_eq = self.show_expanding_terms(eq_75)
+        eq_79 = self.show_completing_square(prop_eq)
+        eq_80_81 = self.show_grouping_terms(eq_79)
+        eq_82 = self.show_removing_constant(eq_80_81)
+        eq_85 = self.show_factoring_denominators(eq_82)
+        self.show_simplification(eq_85)
+        self.convert_to_gaussian()
+        self.show_final_gaussian_form()
         #self.show_reparameterization()
         #self.show_mean_derivation()
         #self.show_final_mean_form()
@@ -3420,7 +3421,6 @@ class DDPMGaussianSampling(Scene):
 
         print(len(eq_73[0]))
         box1 = SurroundingRectangle(eq_73[0][45:58], color=RED, buff=0.05)  # denominator of first fraction
-
         
         eq_74 = MathTex(
             r"q(x_{t-1}|x_t, x_0) = \frac{q(x_t|x_{t-1}, x_0)q(x_{t-1}|x_0)}{q(x_t|x_0)}",
@@ -3446,9 +3446,19 @@ class DDPMGaussianSampling(Scene):
         self.wait(2)
 
         self.play(FadeOut(desc2), FadeOut(eq_73), FadeOut(box1))
+
         self.play(eq_74.animate.shift(UP * 3))
 
-        return eq_74
+        eq_21 = MathTex(
+            r"q(x_t}|x_0) = \mathcal{N}(x_t; \sqrt{\alpha_t}x_0, (1-\alpha_t)I)",
+            font_size=40
+        )
+        eq_21.next_to(eq_74, DOWN, buff=1)
+
+        self.play(Write(eq_21))
+        self.wait(2)
+
+        return eq_74, eq_21
     
     def show_gaussian_pdf(self, eq_74):
         desc = Text("Gaussian Probability Density Function", font_size=30, color=GREEN)
@@ -3464,15 +3474,15 @@ class DDPMGaussianSampling(Scene):
         self.play(Write(desc))
         self.play(Write(eq_76))
         self.wait(2)
-        self.play(FadeOut(desc))
+        self.play(FadeOut(desc), FadeOut(eq_76))
 
-        return eq_76
+        # return eq_76
     
     def show_posterior_as_gaussians(self, eq_74, eq_76):
         # desc.to_edge(UP)
         
         eq_75 = MathTex(
-            r"q(x_{t-1}|x_t, x_0) = \frac{\mathcal{N}(x_t; \sqrt{\alpha_t}x_{t-1}, (1-\alpha_t)I) \mathcal{N}(x_{t-1}; \sqrt{\bar{\alpha}_{t-1}}x_0, (1-\bar{\alpha}_{t-1})I)}{\mathcal{N}(x_t; \sqrt{\bar{\alpha}_t}x_0, (1-\bar{\alpha}_t)I)}",
+            r"q(x_{t-1}|x_t, x_0) = \frac{\mathcal{N}(x_t; \sqrt{\alpha_t}x_{t-1}, (1-\alpha_t)I) \mathcal{N}(x_{t-1}; \sqrt{\overline{\alpha}_{t-1}}x_0, (1-\overline{\alpha}_{t-1})I)}{\mathcal{N}(x_t; \sqrt{\overline{\alpha}_t}x_0, (1-\overline{\alpha}_t)I)}",
             font_size=40
         )
 
@@ -3489,65 +3499,95 @@ class DDPMGaussianSampling(Scene):
 
         return eq_75
     
-    def show_expanding_terms(self):
-        desc = Text("Expanding as Exponentials", font_size=36, color=YELLOW)
-        desc.to_edge(UP)
+    def show_expanding_terms(self, eq_75):
+        desc = Text("Expanding as Exponentials", font_size=30, color=GREEN)
+        desc.next_to(eq_75, DOWN, buff=2)
         
-        eq_77 = MathTex(
+        eq_77_1 = MathTex(
             r"q(x_{t-1}|x_t, x_0) = ",
+            font_size=40
+        ).shift(UP*3)
+        eq_77_2 = MathTex(
             r"\frac{1}{\sqrt{2\pi(1-\alpha_t)}} \exp\left(-\frac{(x_t - \sqrt{\alpha_t}x_{t-1})^2}{2(1-\alpha_t)}\right)",
-            r" \times \frac{1}{\sqrt{2\pi(1-\bar{\alpha}_{t-1})}} \exp\left(-\frac{(x_{t-1} - \sqrt{\bar{\alpha}_{t-1}}x_0)^2}{2(1-\bar{\alpha}_{t-1})}\right)",
-            r" / \frac{1}{\sqrt{2\pi(1-\bar{\alpha}_t)}} \exp\left(-\frac{(x_t - \sqrt{\bar{\alpha}_t}x_0)^2}{2(1-\bar{\alpha}_t)}\right)",
-            font_size=20
-        ).shift(UP*0.5)
+            font_size=40
+        )#.shift(UP*0.5)
+        eq_77_2.next_to(eq_77_1, DOWN, buff=0.5)
+        eq_77_3 = MathTex(
+            r" \times \frac{1}{\sqrt{2\pi(1-\overline{\alpha}_{t-1})}} \exp\left(-\frac{(x_{t-1} - \sqrt{\overline{\alpha}_{t-1}}x_0)^2}{2(1-\overline{\alpha}_{t-1})}\right)",
+            font_size=40
+        )#.shift(UP*0.5)
+        eq_77_3.next_to(eq_77_2, DOWN, buff=0.5)
+        eq_77_4 = MathTex(
+            r" / \frac{1}{\sqrt{2\pi(1-\overline{\alpha}_t)}} \exp\left(-\frac{(x_t - \sqrt{\overline{\alpha}_t}x_0)^2}{2(1-\overline{\alpha}_t)}\right)",
+            font_size=40
+        )#.shift(UP*0.5)
+        eq_77_4.next_to(eq_77_3, DOWN, buff=0.5)
         
+        # self.play(Write(desc))
+        self.play(ReplacementTransform(eq_75, eq_77_1))
         self.play(Write(desc))
-        self.play(Write(eq_77))
+        self.play(Write(eq_77_2))
+        self.play(Write(eq_77_3))
+        self.play(Write(eq_77_4))
+        self.play(FadeOut(desc))
         self.wait(3)
         
         # Highlight that it's proportional
         prop_eq = MathTex(
-            r"q(x_{t-1}|x_t, x_0) \propto \exp\left(-\left[\frac{(x_t - \sqrt{\alpha_t}x_{t-1})^2}{2(1-\alpha_t)} + \frac{(x_{t-1} - \sqrt{\bar{\alpha}_{t-1}}x_0)^2}{2(1-\bar{\alpha}_{t-1})} - \frac{(x_t - \sqrt{\bar{\alpha}_t}x_0)^2}{2(1-\bar{\alpha}_t)}\right]\right)",
-            font_size=24
-        ).shift(DOWN*1.5)
+            r"q(x_{t-1}|x_t, x_0) \propto \exp\left(-\left[\frac{(x_t - \sqrt{\alpha_t}x_{t-1})^2}{2(1-\alpha_t)} + \frac{(x_{t-1} - \sqrt{\overline{\alpha}_{t-1}}x_0)^2}{2(1-\overline{\alpha}_{t-1})} - \frac{(x_t - \sqrt{\overline{\alpha}_t}x_0)^2}{2(1-\overline{\alpha}_t)}\right]\right)",
+            font_size=32
+        )
+        prop_eq.next_to(eq_77_4, DOWN, buff=0.5)
         
         self.play(Write(prop_eq))
         self.wait(2)
-        self.play(FadeOut(desc), FadeOut(eq_77), FadeOut(prop_eq))
+
+        self.play(FadeOut(eq_77_1), FadeOut(eq_77_2), FadeOut(eq_77_3), FadeOut(eq_77_4))
+        self.wait(1)
+
+        self.play(prop_eq.animate.shift(UP * 3))
+        self.wait(1)
+
+        return prop_eq
     
-    def show_completing_square(self):
-        desc = Text("Expanding Squared Terms: (a-b)² = a² - 2ab + b²", font_size=36, color=YELLOW)
-        desc.to_edge(UP)
+    def show_completing_square(self, prop_eq):
+        # desc = Text("Expanding Squared Terms: (a-b)² = a² - 2ab + b²", font_size=36, color=YELLOW)
+        # desc.to_edge(UP)
         
         # Show the algebraic identity visually
         identity = MathTex(
             r"(a - b)^2 = a^2 - 2ab + b^2",
-            font_size=48,
+            font_size=32,
             color=GREEN
-        ).shift(UP*1)
+        ).shift(DOWN*2)
         
-        self.play(Write(desc))
+        # self.play(Write(desc))
         self.play(Write(identity))
         self.wait(2)
         
         # Show equation 79
         eq_79 = MathTex(
-            r"= \exp\left(-\frac{1}{2}\left[\frac{x_t^2 + \alpha_tx_{t-1}^2 - 2\sqrt{\alpha_t}x_tx_{t-1}}{(1-\alpha_t)} + \frac{x_{t-1}^2 + \bar{\alpha}_{t-1}x_0^2 - 2\sqrt{\bar{\alpha}_{t-1}}x_{t-1}x_0}{(1-\bar{\alpha}_{t-1})} - \frac{x_t^2 + \bar{\alpha}_tx_0^2 - 2\sqrt{\bar{\alpha}_t}x_tx_0}{(1-\bar{\alpha}_t)}\right]\right)",
-            font_size=22
-        ).shift(DOWN*1.5)
+            r"q(x_{t-1}|x_t, x_0) \propto \exp\left(-\frac{1}{2}\left[\frac{x_t^2 + \alpha_tx_{t-1}^2 - 2\sqrt{\alpha_t}x_tx_{t-1}}{(1-\alpha_t)} + \frac{x_{t-1}^2 + \overline{\alpha}_{t-1}x_0^2 - 2\sqrt{\overline{\alpha}_{t-1}}x_{t-1}x_0}{(1-\overline{\alpha}_{t-1})} - \frac{x_t^2 + \overline{\alpha}_tx_0^2 - 2\sqrt{\overline{\alpha}_t}x_tx_0}{(1-\overline{\alpha}_t)}\right]\right)",
+            font_size=25
+        )#.shift(DOWN*1.5)
         
-        self.play(Write(eq_79))
+        # self.play(Write(eq_79))
+        self.play(ReplacementTransform(prop_eq, eq_79))
         self.wait(3)
-        self.play(FadeOut(desc), FadeOut(identity), FadeOut(eq_79))
+        # self.play(FadeOut(identity), FadeOut(eq_79))
+        self.play(FadeOut(identity))
+        self.wait(1)
+
+        return eq_79
     
-    def show_grouping_terms(self):
-        desc = Text("Grouping Terms with x_t and x_0", font_size=36, color=YELLOW)
-        desc.to_edge(UP)
-        
+    def show_grouping_terms(self, eq_79):
         eq_80_81 = MathTex(
-            r"= \exp\left(-\frac{1}{2}\left[\frac{\alpha_tx_{t-1}^2 - 2\sqrt{\alpha_t}x_tx_{t-1}}{(1-\alpha_t)} + \frac{x_{t-1}^2 - 2\sqrt{\bar{\alpha}_{t-1}}x_{t-1}x_0}{(1-\bar{\alpha}_{t-1})} + C(x_t, x_0)\right]\right)",
-            font_size=28
+            r"q(x_{t-1}|x_t, x_0) \propto \exp\left(-\frac{1}{2}\left[\frac{\alpha_tx_{t-1}^2 - 2\sqrt{\alpha_t}x_tx_{t-1}}{(1-\alpha_t)} + \frac{x_{t-1}^2 - 2\sqrt{\overline{\alpha}_{t-1}}x_{t-1}x_0}{(1-\overline{\alpha}_{t-1})} + C(x_t, x_0)\right]\right)",
+            font_size=32
         )
+
+        desc = Text("Grouping Terms with x_t and x_0", font_size=36, color=YELLOW)
+        desc.next_to(eq_79, DOWN, buff=0.5)
         
         c_note = Text(
             "C(x_t, x_0) contains all terms with x_t and x_0 only",
@@ -3556,87 +3596,153 @@ class DDPMGaussianSampling(Scene):
         ).shift(DOWN*2)
         
         self.play(Write(desc))
-        self.play(Write(eq_80_81))
         self.wait(1)
+
+        self.play(ReplacementTransform(eq_79, eq_80_81))
+        # self.play(Write(eq_80_81))
+        self.wait(1)
+
+        self.play(FadeOut(desc))
+
         self.play(FadeIn(c_note, shift=UP))
         self.wait(2)
-        self.play(FadeOut(desc), FadeOut(eq_80_81), FadeOut(c_note))
+        self.play(FadeOut(c_note))
+
+        return eq_80_81
     
-    def show_removing_constant(self):
+    def show_removing_constant(self, eq_80_81):
         desc = Text("Removing Constant: e^(x+C) = Ce^x ∝ e^x", font_size=36, color=YELLOW)
-        desc.to_edge(UP)
+        # desc.to_edge(UP)
+        desc.next_to(eq_80_81, DOWN, buff=1.0)
         
         prop_property = MathTex(
             r"e^{(x+C)} = e^x \cdot e^C = Ce^x \propto e^x",
             font_size=44,
             color=RED
-        ).shift(UP*1)
+        ).next_to(desc, DOWN, buff=0.5)
         
         eq_82 = MathTex(
-            r"\Rightarrow q(x_{t-1}|x_t, x_0) \propto \exp\left(-\frac{1}{2}\left[\frac{\alpha_tx_{t-1}^2 - 2\sqrt{\alpha_t}x_tx_{t-1}}{(1-\alpha_t)} + \frac{x_{t-1}^2 - 2\sqrt{\bar{\alpha}_{t-1}}x_{t-1}x_0}{(1-\bar{\alpha}_{t-1})}\right]\right)",
-            font_size=26
-        ).shift(DOWN*1.5)
+            r"\Rightarrow q(x_{t-1}|x_t, x_0) \propto \exp\left(-\frac{1}{2}\left[\frac{\alpha_tx_{t-1}^2 - 2\sqrt{\alpha_t}x_tx_{t-1}}{(1-\alpha_t)} + \frac{x_{t-1}^2 - 2\sqrt{\overline{\alpha}_{t-1}}x_{t-1}x_0}{(1-\overline{\alpha}_{t-1})}\right]\right)",
+            font_size=36
+        )
         
         self.play(Write(desc))
         self.play(Write(prop_property))
         self.wait(2)
-        self.play(Write(eq_82))
+        # self.play(Write(eq_82))
+        self.play(ReplacementTransform(eq_80_81, eq_82))
         self.wait(2)
-        self.play(FadeOut(desc), FadeOut(prop_property), FadeOut(eq_82))
+        self.play(FadeOut(desc), FadeOut(prop_property))
+
+        return eq_82
     
-    def show_factoring_denominators(self):
-        desc = Text("Finding Common Denominators", font_size=36, color=YELLOW)
-        desc.to_edge(UP)
+    def show_factoring_denominators(self, eq_82):
+        desc = Text("Finding Common Denominators", font_size=36, color=GREEN)
+        # desc.to_edge(UP)
+        desc.next_to(eq_82, DOWN, buff=1.0)
+
+        eq_83 = MathTex(
+            r"q(x_{t-1}|x_t, x_0) \propto \exp \left( -\frac{1}{2} \left[ \frac{\alpha_t x_{t-1}^2}{(1 - \alpha_t)} + \frac{x_{t-1}^2}{(1 - \overline{\alpha_{t-1}})} + \frac{-2\sqrt{\alpha_t} x_t x_{t-1}}{(1 - \alpha_t)} + \frac{-2\sqrt{\overline{\alpha_{t-1}}} x_{t-1} x_0}{(1 - \overline{\alpha_{t-1}})} \right] \right)",
+            font_size=32
+        )
+
+        eq_84 = MathTex(
+            r"q(x_{t-1}|x_t, x_0) \propto \exp \left( -\frac{1}{2} \left[ \left( \frac{\alpha_t}{1 - \alpha_t} + \frac{1}{1 - \overline{\alpha_{t-1}}} \right) x_{t-1}^2 - 2 \left( \frac{\sqrt{\alpha_t} x_t }{1 - \alpha_t} + \frac{\sqrt{\overline{\alpha_{t-1}}} x_0}{1 - \overline{\alpha_{t-1}}} \right) x_{t-1} \right] \right)",
+            font_size=32
+        )
+
+        eq_85 = MathTex(
+            r"q(x_{t-1}|x_t, x_0) \propto \exp \left( -\frac{1}{2} \left[ \frac{\alpha_t (1 - \overline{\alpha_{t-1}}) + 1 - \alpha_t}{(1 - \alpha_t)(1 - \overline{\alpha_{t-1}})} x_{t-1}^2 - 2 \left( \frac{\sqrt{\alpha_t} x_t (1 - \overline{\alpha_{t-1}}) + (1 - \alpha_t)\sqrt{\overline{\alpha_{t-1}}} x_0 }{(1 - \alpha_t) (1 - \overline{\alpha_{t-1}})} \right) x_{t-1} \right] \right)",
+            font_size=22
+        )
         
         eq_83_85 = MathTex(
-            r"= \exp\left(-\frac{1}{2}\left[\frac{\alpha_t(1-\bar{\alpha}_{t-1}) + 1-\alpha_t}{(1-\alpha_t)(1-\bar{\alpha}_{t-1})}x_{t-1}^2 - 2\frac{\sqrt{\alpha_t}(1-\bar{\alpha}_{t-1})x_t + \sqrt{\bar{\alpha}_{t-1}}(1-\alpha_t)x_0}{(1-\alpha_t)(1-\bar{\alpha}_{t-1})}x_{t-1}\right]\right)",
+            r"= \exp\left(-\frac{1}{2}\left[\frac{\alpha_t(1-\overline{\alpha}_{t-1}) + 1-\alpha_t}{(1-\alpha_t)(1-\overline{\alpha}_{t-1})}x_{t-1}^2 - 2\frac{\sqrt{\alpha_t}(1-\overline{\alpha}_{t-1})x_t + \sqrt{\overline{\alpha}_{t-1}}(1-\alpha_t)x_0}{(1-\alpha_t)(1-\overline{\alpha}_{t-1})}x_{t-1}\right]\right)",
             font_size=22
-        ).shift(UP*0.5)
+        )
         
         self.play(Write(desc))
-        self.play(Write(eq_83_85))
-        self.wait(3)
-        self.play(FadeOut(desc), FadeOut(eq_83_85))
+        self.wait(1)
+
+        self.play(ReplacementTransform(eq_82, eq_83))
+        self.wait(2)
+
+        self.play(ReplacementTransform(eq_83, eq_84))
+        self.wait(2)
+        self.play(FadeOut(eq_84))
+
+        # self.play(ReplacementTransform(eq_84, eq_83_85))
+        self.play(Write(eq_85))
+        self.wait(2)
+        # self.play(FadeOut(eq_85))
+
+        self.play(FadeOut(desc))
+        self.wait(2)
+
+        # return eq_83_85
+        return eq_85
     
-    def show_simplification(self):
-        desc = Text("Simplifying: α_t - α_t·ᾱ_{t-1} + 1 - α_t = 1 - ᾱ_t", font_size=32, color=YELLOW)
-        desc.to_edge(UP)
+    def show_simplification(self, eq_85):
+        desc = Text("Simplifying", font_size=32, color=GREEN)
+        # desc.to_edge(UP)
+        desc.next_to(eq_85, DOWN, buff=1.)
         
         simplification = MathTex(
-            r"\alpha_t - \alpha_t\bar{\alpha}_{t-1} + 1 - \alpha_t = 1 - \bar{\alpha}_t",
-            font_size=40,
+            r"\alpha_t - \alpha_t\overline{\alpha}_{t-1} + 1 - \alpha_t = 1 - \overline{\alpha}_t",
+            font_size=32,
             color=GREEN
-        ).shift(UP*1)
+        )
+        simplification.next_to(desc, DOWN, buff=0.5)
         
         eq_87 = MathTex(
-            r"= \exp\left(-\frac{1}{2}\left[\frac{1-\bar{\alpha}_t}{(1-\alpha_t)(1-\bar{\alpha}_{t-1})}x_{t-1}^2 - 2\frac{\sqrt{\alpha_t}(1-\bar{\alpha}_{t-1})x_t + \sqrt{\bar{\alpha}_{t-1}}(1-\alpha_t)x_0}{(1-\alpha_t)(1-\bar{\alpha}_{t-1})}x_{t-1}\right]\right)",
+            r"= \exp\left(-\frac{1}{2}\left[\frac{1-\overline{\alpha}_t}{(1-\alpha_t)(1-\overline{\alpha}_{t-1})}x_{t-1}^2 - 2\frac{\sqrt{\alpha_t}(1-\overline{\alpha}_{t-1})x_t + \sqrt{\overline{\alpha}_{t-1}}(1-\alpha_t)x_0}{(1-\alpha_t)(1-\overline{\alpha}_{t-1})}x_{t-1}\right]\right)",
             font_size=24
-        ).shift(DOWN*1.5)
+        )
         
         self.play(Write(desc))
         self.play(Write(simplification))
         self.wait(2)
-        self.play(Write(eq_87))
+
+        # self.play(Write(eq_87))
+        self.play(ReplacementTransform(eq_85, eq_87))
         self.wait(2)
+
         self.play(FadeOut(desc), FadeOut(simplification), FadeOut(eq_87))
+
+    def convert_to_gaussian(self):
+        desc = Text('Writing in the exp form', font_size=36, color=GREEN)
+        desc.to_edge(3*DOWN)
+
+        eq_88 = MathTex(
+            r"q(x_{t-1}|x_t, x_0) \propto \exp \left( -\frac{1}{2} \left( \frac{1 - \alpha_t}{(1 - \alpha_t)(1 - \overline{\alpha_{t-1}})} \right) \left[ x_{t-1}^2 - 2 \frac{\sqrt{\alpha_t}(1 - \overline{\alpha_{t-1}})x_t + \sqrt{\alpha_{t-1}}(1 - \alpha_t)x_0}{1 - \overline{\alpha_t}}x_{t-1} \right] \right)",
+            font_size=22,
+        )
+
+        self.play(Write(desc))
+        self.wait(1)
+
+        self.play(Write(eq_88))
+        self.wait(2)
+
+        self.play(FadeOut(desc), FadeOut(eq_88))
     
     def show_final_gaussian_form(self):
         desc = Text("Recognizing Gaussian Form: exp(-½σ⁻²(x-μ)²)", font_size=36, color=YELLOW)
         desc.to_edge(UP)
         
         eq_90 = MathTex(
-            r"\Rightarrow q(x_{t-1}|x_t, x_0) \propto \mathcal{N}\left(x_{t-1}; \frac{\sqrt{\alpha_t}(1-\bar{\alpha}_{t-1})x_t + \sqrt{\bar{\alpha}_{t-1}}(1-\alpha_t)x_0}{1-\bar{\alpha}_t}, \frac{(1-\alpha_t)(1-\bar{\alpha}_{t-1})}{1-\bar{\alpha}_t}I\right)",
+            r"\Rightarrow q(x_{t-1}|x_t, x_0) \propto \mathcal{N}\left(x_{t-1}; \frac{\sqrt{\alpha_t}(1-\overline{\alpha}_{t-1})x_t + \sqrt{\overline{\alpha}_{t-1}}(1-\alpha_t)x_0}{1-\overline{\alpha}_t}, \frac{(1-\alpha_t)(1-\overline{\alpha}_{t-1})}{1-\overline{\alpha}_t}I\right)",
             font_size=26
         ).shift(UP*0.5)
         
         eq_91 = MathTex(
-            r"\mu_q(x_t, x_0) := \frac{\sqrt{\alpha_t}(1-\bar{\alpha}_{t-1})x_t + \sqrt{\bar{\alpha}_{t-1}}(1-\alpha_t)x_0}{1-\bar{\alpha}_t}",
+            r"\mu_q(x_t, x_0) := \frac{\sqrt{\alpha_t}(1-\overline{\alpha}_{t-1})x_t + \sqrt{\overline{\alpha}_{t-1}}(1-\alpha_t)x_0}{1-\overline{\alpha}_t}",
             font_size=34,
             color=BLUE
         ).shift(DOWN*1)
         
         eq_92 = MathTex(
-            r"\Sigma_q(t) := \frac{(1-\alpha_t)(1-\bar{\alpha}_{t-1})}{1-\bar{\alpha}_t}",
+            r"\Sigma_q(t) := \frac{(1-\alpha_t)(1-\overline{\alpha}_{t-1})}{1-\overline{\alpha}_t}",
             font_size=38,
             color=GREEN
         ).shift(DOWN*2.2)
@@ -3654,14 +3760,14 @@ class DDPMGaussianSampling(Scene):
         desc.to_edge(UP)
         
         eq_14 = MathTex(
-            r"x_t = \sqrt{\bar{\alpha}_t} \cdot x_0 + \sqrt{1-\bar{\alpha}_t} \cdot \epsilon_0",
+            r"x_t = \sqrt{\overline{\alpha}_t} \cdot x_0 + \sqrt{1-\overline{\alpha}_t} \cdot \epsilon_0",
             font_size=40
         ).shift(UP*1)
         
         arrow = Arrow(eq_14.get_bottom(), eq_14.get_bottom() + DOWN*0.6, color=YELLOW, buff=0.1, stroke_width=6)
         
         eq_93 = MathTex(
-            r"\Rightarrow x_0 = \frac{x_t - \sqrt{1-\bar{\alpha}_t}\epsilon_0}{\sqrt{\bar{\alpha}_t}}",
+            r"\Rightarrow x_0 = \frac{x_t - \sqrt{1-\overline{\alpha}_t}\epsilon_0}{\sqrt{\overline{\alpha}_t}}",
             font_size=40
         ).next_to(arrow, DOWN, buff=0.3)
         
@@ -3678,7 +3784,7 @@ class DDPMGaussianSampling(Scene):
         desc.to_edge(UP)
         
         eq_95 = MathTex(
-            r"\mu_q(x_t, x_0) = \frac{\sqrt{\alpha_t}(1-\bar{\alpha}_{t-1})x_t + \sqrt{\bar{\alpha}_{t-1}}(1-\alpha_t)\frac{x_t - \sqrt{1-\bar{\alpha}_t}\epsilon_0}{\sqrt{\bar{\alpha}_t}}}{1-\bar{\alpha}_t}",
+            r"\mu_q(x_t, x_0) = \frac{\sqrt{\alpha_t}(1-\overline{\alpha}_{t-1})x_t + \sqrt{\overline{\alpha}_{t-1}}(1-\alpha_t)\frac{x_t - \sqrt{1-\overline{\alpha}_t}\epsilon_0}{\sqrt{\overline{\alpha}_t}}}{1-\overline{\alpha}_t}",
             font_size=28
         )
         
@@ -3692,7 +3798,7 @@ class DDPMGaussianSampling(Scene):
         desc.to_edge(UP)
         
         eq_102 = MathTex(
-            r"\mu_q(x_t, x_0) = \frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}}\epsilon_0\right)",
+            r"\mu_q(x_t, x_0) = \frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{1-\alpha_t}{\sqrt{1-\overline{\alpha}_t}}\epsilon_0\right)",
             font_size=40,
             color=GOLD
         )
@@ -3778,7 +3884,7 @@ class DDPMGaussianSampling(Scene):
         step4_title.shift(UP*2)
         
         denoising_eq = MathTex(
-            r"x_{t-1} = \frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}}\epsilon_\theta(x_t, t)\right) + \sigma_t z",
+            r"x_{t-1} = \frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{1-\alpha_t}{\sqrt{1-\overline{\alpha}_t}}\epsilon_\theta(x_t, t)\right) + \sigma_t z",
             font_size=32
         ).shift(UP*0.5)
         
@@ -3818,102 +3924,6 @@ class DDPMGaussianSampling(Scene):
         self.wait(3)
         self.play(FadeOut(title), FadeOut(step5))
 
-
-# NARRATION SCRIPT
-"""
-[INTRO - Gaussian Parameters]
-We've derived the ELBO loss, but optimizing KL divergences between arbitrary posteriors is difficult.
-In this section, we'll use Gaussian assumptions to make the problem tractable.
-
-[Bayes Flip]
-Using Bayes rule, we can flip the conditioning in our posterior distribution.
-This allows us to express q(x_{t-1}|x_t, x_0) in terms of quantities we can compute.
-
-[Gaussian PDF]
-Recall the probability density function for a Gaussian distribution.
-We'll use this form extensively in our derivation.
-
-[Posterior as Gaussians]
-From the forward diffusion process and Markov property,
-we can write our posterior as a product of three Gaussian distributions.
-
-[Expanding Terms]
-We expand these Gaussians as exponentials with squared terms.
-The multiplication of Gaussians becomes addition in the exponents.
-
-[Completing Square]
-We apply the algebraic identity (a-b)² = a² - 2ab + b².
-This expands each squared term in our expression.
-
-[Grouping Terms]
-We group all terms involving only x_t and x_0 into a constant function C(x_t, x_0).
-Since we're conditioning on these values, we can treat them as constants.
-
-[Removing Constant]
-A constant in the exponent means the distribution is proportional to the exponential.
-We can remove C(x_t, x_0) from our expression using e^(x+C) = Ce^x ∝ e^x.
-
-[Finding Common Denominators]
-We factor out common denominators and reorganize terms.
-The goal is to get everything over a common denominator: (1-α_t)(1-ᾱ_{t-1}).
-
-[Simplification]
-In the numerator, α_t - α_t·ᾱ_{t-1} + 1 - α_t simplifies beautifully.
-The α_t terms cancel, leaving us with 1 - ᾱ_t!
-
-[Final Gaussian Form]
-We recognize this as a Gaussian distribution in standard form.
-We can now extract the mean μ_q and variance Σ_q.
-The variance is clean, but the mean still contains both x_t and x_0.
-
-[Reparameterization]
-From our forward process, we know x_t in terms of x_0 and noise.
-We solve for x_0: it's x_t minus the accumulated noise, divided by the scaling factor.
-
-[Mean Derivation]
-We substitute this expression for x_0 into our mean formula.
-After algebraic manipulation, we get our final form.
-
-[Final Mean Form]
-This is beautiful! The mean is one over root α_t,
-times x_t minus the predicted noise scaled by (1-α_t) over root (1-ᾱ_t).
-This is the "perfect" denoising mean our model needs to learn!
-
-[PART 2 - Sampling Algorithm]
-
-[Algorithm Overview]
-Now we can write the practical sampling algorithm.
-This is how we actually generate images from pure noise!
-
-[Step 1 - Initialize]
-We start with pure Gaussian noise x_T sampled from N(0, I).
-This is completely random - no structure, no image, just noise.
-
-[Step 2 - Loop]
-We loop backwards from T to 1.
-At each timestep, we predict and remove a bit of noise.
-
-[Step 3 - Sample Noise]
-We sample fresh Gaussian noise z at each step, except the final step.
-This maintains stochasticity in our generation process.
-
-[Step 4 - Denoising]
-This is the heart of DDPM!
-We scale x_t by one over root α_t,
-subtract the predicted noise ε_θ(x_t, t) weighted by (1-α_t)/√(1-ᾱ_t),
-and add random noise σ_t·z for stochasticity.
-Our neural network ε_θ predicts what noise was added at this timestep.
-
-[Step 5 - Return]
-After T iterations of gradual denoising, we've recovered a clean image x_0!
-This iterative refinement is what makes diffusion models so powerful.
-
-[OUTRO]
-We've journeyed from intractable KL divergences to a practical algorithm.
-The Gaussian assumptions gave us closed-form expressions for the mean and variance.
-And the reparameterization lets our model predict noise instead of images directly.
-This elegant formulation is why DDPM works so well in practice!
-"""
 
 # To render:
 # python -m manim -pql ddpm.py DDPMGaussianSampling
