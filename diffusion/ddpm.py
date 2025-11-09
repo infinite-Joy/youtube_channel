@@ -1346,7 +1346,7 @@ class ForwardDiffusionReparameterization(Scene):
         self.wait(2)
         
         # Define bar alpha
-        bar_alpha = MathTex(r"\bar{\alpha}_t = \prod_{i=1}^{T} \alpha_i").scale(0.8)
+        bar_alpha = MathTex(r"\overline{\alpha_t} = \prod_{i=1}^{T} \alpha_i").scale(0.8)
         bar_alpha.next_to(to_x0, DOWN, buff=0.6)
         box = SurroundingRectangle(bar_alpha, color=BLUE, buff=0.2)
         self.play(Write(bar_alpha))
@@ -1355,7 +1355,7 @@ class ForwardDiffusionReparameterization(Scene):
 
         # Final form
         final = MathTex(
-            r"x_t = \sqrt{\bar{\alpha}_t} x_0 + \sqrt{1-\bar{\alpha}_t} \epsilon_0"
+            r"x_t = \sqrt{\overline{\alpha_t}} x_0 + \sqrt{1-\overline{\alpha_t}} \epsilon_0"
         ).scale(0.85).next_to(bar_alpha, DOWN, buff=0.6)
         final_box = SurroundingRectangle(final, color=GREEN, buff=0.2)
         self.play(Write(final))
@@ -1367,7 +1367,7 @@ class ForwardDiffusionReparameterization(Scene):
         
         # Equivalent distribution form
         dist_form = MathTex(
-            r"x_t \sim \mathcal{N}(x_t; \sqrt{\bar{\alpha}_t}x_0, (1-\bar{\alpha}_t)I)"
+            r"x_t \sim \mathcal{N}(x_t; \sqrt{\overline{\alpha_t}}x_0, (1-\overline{\alpha_t})I)"
         ).scale(0.85).next_to(final, DOWN, buff=0.6)
         dist_box = SurroundingRectangle(dist_form, color=YELLOW, buff=0.2)
         self.play(Write(dist_form))
@@ -3389,13 +3389,15 @@ class DDPMGaussianSampling(Scene):
         self.show_simplification(eq_85)
         self.convert_to_gaussian()
         self.show_final_gaussian_form()
-        #self.show_reparameterization()
-        #self.show_mean_derivation()
-        #self.show_final_mean_form()
+        self.show_reparameterization()
+        eq_97 = self.show_mean_derivation()
+        eq_99 = self.show_expanding_and_separating(eq_97)
+        eq_101 = self.show_cancellation_steps(eq_99)
+        self.show_final_mean_form(eq_101)
         
         ## Part 2: Sampling Algorithm
-        #self.show_sampling_algorithm()
-        #self.show_algorithm_walkthrough()
+        self.show_sampling_algorithm()
+        self.show_algorithm_walkthrough()
         
     def show_title(self):
         title = Text("DDPM: Gaussian Parameters & Sampling", font_size=48, color=BLUE)
@@ -3482,7 +3484,7 @@ class DDPMGaussianSampling(Scene):
         # desc.to_edge(UP)
         
         eq_75 = MathTex(
-            r"q(x_{t-1}|x_t, x_0) = \frac{\mathcal{N}(x_t; \sqrt{\alpha_t}x_{t-1}, (1-\alpha_t)I) \mathcal{N}(x_{t-1}; \sqrt{\overline{\alpha}_{t-1}}x_0, (1-\overline{\alpha}_{t-1})I)}{\mathcal{N}(x_t; \sqrt{\overline{\alpha}_t}x_0, (1-\overline{\alpha}_t)I)}",
+            r"q(x_{t-1}|x_t, x_0) = \frac{\mathcal{N}(x_t; \sqrt{\alpha_t}x_{t-1}, (1-\alpha_t)I) \mathcal{N}(x_{t-1}; \sqrt{\overline{\alpha_{t-1}}}x_0, (1-\overline{\alpha_{t-1}})I)}{\mathcal{N}(x_t; \sqrt{\overline{\alpha_t}}x_0, (1-\overline{\alpha_t})I)}",
             font_size=40
         )
 
@@ -3513,12 +3515,12 @@ class DDPMGaussianSampling(Scene):
         )#.shift(UP*0.5)
         eq_77_2.next_to(eq_77_1, DOWN, buff=0.5)
         eq_77_3 = MathTex(
-            r" \times \frac{1}{\sqrt{2\pi(1-\overline{\alpha}_{t-1})}} \exp\left(-\frac{(x_{t-1} - \sqrt{\overline{\alpha}_{t-1}}x_0)^2}{2(1-\overline{\alpha}_{t-1})}\right)",
+            r" \times \frac{1}{\sqrt{2\pi(1-\overline{\alpha_{t-1}})}} \exp\left(-\frac{(x_{t-1} - \sqrt{\overline{\alpha_{t-1}}}x_0)^2}{2(1-\overline{\alpha_{t-1}})}\right)",
             font_size=40
         )#.shift(UP*0.5)
         eq_77_3.next_to(eq_77_2, DOWN, buff=0.5)
         eq_77_4 = MathTex(
-            r" / \frac{1}{\sqrt{2\pi(1-\overline{\alpha}_t)}} \exp\left(-\frac{(x_t - \sqrt{\overline{\alpha}_t}x_0)^2}{2(1-\overline{\alpha}_t)}\right)",
+            r" / \frac{1}{\sqrt{2\pi(1-\overline{\alpha_t})}} \exp\left(-\frac{(x_t - \sqrt{\overline{\alpha_t}}x_0)^2}{2(1-\overline{\alpha_t})}\right)",
             font_size=40
         )#.shift(UP*0.5)
         eq_77_4.next_to(eq_77_3, DOWN, buff=0.5)
@@ -3534,7 +3536,7 @@ class DDPMGaussianSampling(Scene):
         
         # Highlight that it's proportional
         prop_eq = MathTex(
-            r"q(x_{t-1}|x_t, x_0) \propto \exp\left(-\left[\frac{(x_t - \sqrt{\alpha_t}x_{t-1})^2}{2(1-\alpha_t)} + \frac{(x_{t-1} - \sqrt{\overline{\alpha}_{t-1}}x_0)^2}{2(1-\overline{\alpha}_{t-1})} - \frac{(x_t - \sqrt{\overline{\alpha}_t}x_0)^2}{2(1-\overline{\alpha}_t)}\right]\right)",
+            r"q(x_{t-1}|x_t, x_0) \propto \exp\left(-\left[\frac{(x_t - \sqrt{\alpha_t}x_{t-1})^2}{2(1-\alpha_t)} + \frac{(x_{t-1} - \sqrt{\overline{\alpha_{t-1}}}x_0)^2}{2(1-\overline{\alpha_{t-1}})} - \frac{(x_t - \sqrt{\overline{\alpha_t}}x_0)^2}{2(1-\overline{\alpha_t})}\right]\right)",
             font_size=32
         )
         prop_eq.next_to(eq_77_4, DOWN, buff=0.5)
@@ -3567,7 +3569,7 @@ class DDPMGaussianSampling(Scene):
         
         # Show equation 79
         eq_79 = MathTex(
-            r"q(x_{t-1}|x_t, x_0) \propto \exp\left(-\frac{1}{2}\left[\frac{x_t^2 + \alpha_tx_{t-1}^2 - 2\sqrt{\alpha_t}x_tx_{t-1}}{(1-\alpha_t)} + \frac{x_{t-1}^2 + \overline{\alpha}_{t-1}x_0^2 - 2\sqrt{\overline{\alpha}_{t-1}}x_{t-1}x_0}{(1-\overline{\alpha}_{t-1})} - \frac{x_t^2 + \overline{\alpha}_tx_0^2 - 2\sqrt{\overline{\alpha}_t}x_tx_0}{(1-\overline{\alpha}_t)}\right]\right)",
+            r"q(x_{t-1}|x_t, x_0) \propto \exp\left(-\frac{1}{2}\left[\frac{x_t^2 + \alpha_tx_{t-1}^2 - 2\sqrt{\alpha_t}x_tx_{t-1}}{(1-\alpha_t)} + \frac{x_{t-1}^2 + \overline{\alpha_{t-1}}x_0^2 - 2\sqrt{\overline{\alpha_{t-1}}}x_{t-1}x_0}{(1-\overline{\alpha_{t-1}})} - \frac{x_t^2 + \overline{\alpha_t}x_0^2 - 2\sqrt{\overline{\alpha_t}}x_tx_0}{(1-\overline{\alpha_t})}\right]\right)",
             font_size=25
         )#.shift(DOWN*1.5)
         
@@ -3582,7 +3584,7 @@ class DDPMGaussianSampling(Scene):
     
     def show_grouping_terms(self, eq_79):
         eq_80_81 = MathTex(
-            r"q(x_{t-1}|x_t, x_0) \propto \exp\left(-\frac{1}{2}\left[\frac{\alpha_tx_{t-1}^2 - 2\sqrt{\alpha_t}x_tx_{t-1}}{(1-\alpha_t)} + \frac{x_{t-1}^2 - 2\sqrt{\overline{\alpha}_{t-1}}x_{t-1}x_0}{(1-\overline{\alpha}_{t-1})} + C(x_t, x_0)\right]\right)",
+            r"q(x_{t-1}|x_t, x_0) \propto \exp\left(-\frac{1}{2}\left[\frac{\alpha_tx_{t-1}^2 - 2\sqrt{\alpha_t}x_tx_{t-1}}{(1-\alpha_t)} + \frac{x_{t-1}^2 - 2\sqrt{\overline{\alpha_{t-1}}}x_{t-1}x_0}{(1-\overline{\alpha_{t-1}})} + C(x_t, x_0)\right]\right)",
             font_size=32
         )
 
@@ -3622,7 +3624,7 @@ class DDPMGaussianSampling(Scene):
         ).next_to(desc, DOWN, buff=0.5)
         
         eq_82 = MathTex(
-            r"\Rightarrow q(x_{t-1}|x_t, x_0) \propto \exp\left(-\frac{1}{2}\left[\frac{\alpha_tx_{t-1}^2 - 2\sqrt{\alpha_t}x_tx_{t-1}}{(1-\alpha_t)} + \frac{x_{t-1}^2 - 2\sqrt{\overline{\alpha}_{t-1}}x_{t-1}x_0}{(1-\overline{\alpha}_{t-1})}\right]\right)",
+            r"\Rightarrow q(x_{t-1}|x_t, x_0) \propto \exp\left(-\frac{1}{2}\left[\frac{\alpha_tx_{t-1}^2 - 2\sqrt{\alpha_t}x_tx_{t-1}}{(1-\alpha_t)} + \frac{x_{t-1}^2 - 2\sqrt{\overline{\alpha_{t-1}}}x_{t-1}x_0}{(1-\overline{\alpha_{t-1}})}\right]\right)",
             font_size=36
         )
         
@@ -3657,7 +3659,7 @@ class DDPMGaussianSampling(Scene):
         )
         
         eq_83_85 = MathTex(
-            r"= \exp\left(-\frac{1}{2}\left[\frac{\alpha_t(1-\overline{\alpha}_{t-1}) + 1-\alpha_t}{(1-\alpha_t)(1-\overline{\alpha}_{t-1})}x_{t-1}^2 - 2\frac{\sqrt{\alpha_t}(1-\overline{\alpha}_{t-1})x_t + \sqrt{\overline{\alpha}_{t-1}}(1-\alpha_t)x_0}{(1-\alpha_t)(1-\overline{\alpha}_{t-1})}x_{t-1}\right]\right)",
+            r"= \exp\left(-\frac{1}{2}\left[\frac{\alpha_t(1-\overline{\alpha_{t-1}}) + 1-\alpha_t}{(1-\alpha_t)(1-\overline{\alpha_{t-1}})}x_{t-1}^2 - 2\frac{\sqrt{\alpha_t}(1-\overline{\alpha_{t-1}})x_t + \sqrt{\overline{\alpha_{t-1}}}(1-\alpha_t)x_0}{(1-\alpha_t)(1-\overline{\alpha_{t-1}})}x_{t-1}\right]\right)",
             font_size=22
         )
         
@@ -3688,14 +3690,14 @@ class DDPMGaussianSampling(Scene):
         desc.next_to(eq_85, DOWN, buff=1.)
         
         simplification = MathTex(
-            r"\alpha_t - \alpha_t\overline{\alpha}_{t-1} + 1 - \alpha_t = 1 - \overline{\alpha}_t",
+            r"\alpha_t - \alpha_t\overline{\alpha_{t-1}} + 1 - \alpha_t = 1 - \overline{\alpha_t}",
             font_size=32,
             color=GREEN
         )
         simplification.next_to(desc, DOWN, buff=0.5)
         
         eq_87 = MathTex(
-            r"= \exp\left(-\frac{1}{2}\left[\frac{1-\overline{\alpha}_t}{(1-\alpha_t)(1-\overline{\alpha}_{t-1})}x_{t-1}^2 - 2\frac{\sqrt{\alpha_t}(1-\overline{\alpha}_{t-1})x_t + \sqrt{\overline{\alpha}_{t-1}}(1-\alpha_t)x_0}{(1-\alpha_t)(1-\overline{\alpha}_{t-1})}x_{t-1}\right]\right)",
+            r"= \exp\left(-\frac{1}{2}\left[\frac{1-\overline{\alpha_t}}{(1-\alpha_t)(1-\overline{\alpha_{t-1}})}x_{t-1}^2 - 2\frac{\sqrt{\alpha_t}(1-\overline{\alpha_{t-1}})x_t + \sqrt{\overline{\alpha_{t-1}}}(1-\alpha_t)x_0}{(1-\alpha_t)(1-\overline{\alpha_{t-1}})}x_{t-1}\right]\right)",
             font_size=24
         )
         
@@ -3714,8 +3716,13 @@ class DDPMGaussianSampling(Scene):
         desc.to_edge(3*DOWN)
 
         eq_88 = MathTex(
-            r"q(x_{t-1}|x_t, x_0) \propto \exp \left( -\frac{1}{2} \left( \frac{1 - \alpha_t}{(1 - \alpha_t)(1 - \overline{\alpha_{t-1}})} \right) \left[ x_{t-1}^2 - 2 \frac{\sqrt{\alpha_t}(1 - \overline{\alpha_{t-1}})x_t + \sqrt{\alpha_{t-1}}(1 - \alpha_t)x_0}{1 - \overline{\alpha_t}}x_{t-1} \right] \right)",
+            r"q(x_{t-1}|x_t, x_0) \propto \exp \left( -\frac{1}{2} \left( \frac{1 - \overline{\alpha_t}}{(1 - \alpha_t)(1 - \overline{\alpha_{t-1}})} \right) \left[ x_{t-1}^2 - 2 \frac{\sqrt{\alpha_t}(1 - \overline{\alpha_{t-1}})x_t + \sqrt{\overline{\alpha_{t-1}}}(1 - \alpha_t)x_0}{1 - \overline{\alpha_t}}x_{t-1} \right] \right)",
             font_size=22,
+        )
+
+        eq_89 = MathTex(
+            r"q(x_{t-1}|x_t, x_0) \propto \exp\left(-\frac{1}{2 \frac{(1 - \alpha_t)(1 - \overline{\alpha_{t-1}})}{1  - \overline{\alpha_t}}} \left[x_{t-1}^2 - \frac{\sqrt{\alpha_t}(1 - \overline{\alpha_{t-1}})x_t + \sqrt{\overline{\alpha_{t-1}}}(1 - \alpha_t)x_0}{1 - \overline{\alpha_t}} x_{t-1} \right]\right)",
+            font_size=22
         )
 
         self.play(Write(desc))
@@ -3723,26 +3730,30 @@ class DDPMGaussianSampling(Scene):
 
         self.play(Write(eq_88))
         self.wait(2)
+        self.play(FadeOut(eq_88))
 
-        self.play(FadeOut(desc), FadeOut(eq_88))
+        self.play(Write(eq_89))
+        self.wait(2)
+
+        self.play(FadeOut(desc), FadeOut(eq_89))
     
     def show_final_gaussian_form(self):
         desc = Text("Recognizing Gaussian Form: exp(-½σ⁻²(x-μ)²)", font_size=36, color=YELLOW)
         desc.to_edge(UP)
         
         eq_90 = MathTex(
-            r"\Rightarrow q(x_{t-1}|x_t, x_0) \propto \mathcal{N}\left(x_{t-1}; \frac{\sqrt{\alpha_t}(1-\overline{\alpha}_{t-1})x_t + \sqrt{\overline{\alpha}_{t-1}}(1-\alpha_t)x_0}{1-\overline{\alpha}_t}, \frac{(1-\alpha_t)(1-\overline{\alpha}_{t-1})}{1-\overline{\alpha}_t}I\right)",
+            r"q(x_{t-1}|x_t, x_0) \propto \mathcal{N}\left(x_{t-1}; \frac{\sqrt{\alpha_t}(1-\overline{\alpha_{t-1}})x_t + \sqrt{\overline{\alpha_{t-1}}}(1-\alpha_t)x_0}{1-\overline{\alpha_t}}, \frac{(1-\alpha_t)(1-\overline{\alpha_{t-1}})}{1-\overline{\alpha_t}}I\right)",
             font_size=26
         ).shift(UP*0.5)
         
         eq_91 = MathTex(
-            r"\mu_q(x_t, x_0) := \frac{\sqrt{\alpha_t}(1-\overline{\alpha}_{t-1})x_t + \sqrt{\overline{\alpha}_{t-1}}(1-\alpha_t)x_0}{1-\overline{\alpha}_t}",
+            r"\mu_q(x_t, x_0) := \frac{\sqrt{\alpha_t}(1-\overline{\alpha_{t-1}})x_t + \sqrt{\overline{\alpha_{t-1}}}(1-\alpha_t)x_0}{1-\overline{\alpha_t}}",
             font_size=34,
             color=BLUE
         ).shift(DOWN*1)
         
         eq_92 = MathTex(
-            r"\Sigma_q(t) := \frac{(1-\alpha_t)(1-\overline{\alpha}_{t-1})}{1-\overline{\alpha}_t}",
+            r"\Sigma_q(t) := \frac{(1-\alpha_t)(1-\overline{\alpha_{t-1}})}{1-\overline{\alpha_t}}I\right)",
             font_size=38,
             color=GREEN
         ).shift(DOWN*2.2)
@@ -3760,14 +3771,14 @@ class DDPMGaussianSampling(Scene):
         desc.to_edge(UP)
         
         eq_14 = MathTex(
-            r"x_t = \sqrt{\overline{\alpha}_t} \cdot x_0 + \sqrt{1-\overline{\alpha}_t} \cdot \epsilon_0",
+            r"x_t = \sqrt{\overline{\alpha_t}} \cdot x_0 + \sqrt{1-\overline{\alpha_t}} \cdot \epsilon_0",
             font_size=40
         ).shift(UP*1)
         
         arrow = Arrow(eq_14.get_bottom(), eq_14.get_bottom() + DOWN*0.6, color=YELLOW, buff=0.1, stroke_width=6)
         
         eq_93 = MathTex(
-            r"\Rightarrow x_0 = \frac{x_t - \sqrt{1-\overline{\alpha}_t}\epsilon_0}{\sqrt{\overline{\alpha}_t}}",
+            r"\Rightarrow x_0 = \frac{x_t - \sqrt{1-\overline{\alpha_t}}\epsilon_0}{\sqrt{\overline{\alpha_t}}}",
             font_size=40
         ).next_to(arrow, DOWN, buff=0.3)
         
@@ -3780,42 +3791,239 @@ class DDPMGaussianSampling(Scene):
         self.play(FadeOut(desc), FadeOut(eq_14), FadeOut(arrow), FadeOut(eq_93))
     
     def show_mean_derivation(self):
-        desc = Text("Substituting x_0 into Mean Formula", font_size=36, color=YELLOW)
-        desc.to_edge(UP)
+        desc = Text("Substituting x_0 into Mean Formula", font_size=30, color=GREEN)
+        desc.to_edge(DOWN * 3)
+
+        eq_94 = MathTex(
+            r"\mu_q(x_t, x_0) = \frac{\sqrt{\alpha_t}(1-\overline{\alpha_{t-1}})x_t + \sqrt{\overline{\alpha_{t-1}}}(1-\alpha_t) x_0}{1-\overline{\alpha_t}}",
+            font_size=28
+        )
         
         eq_95 = MathTex(
-            r"\mu_q(x_t, x_0) = \frac{\sqrt{\alpha_t}(1-\overline{\alpha}_{t-1})x_t + \sqrt{\overline{\alpha}_{t-1}}(1-\alpha_t)\frac{x_t - \sqrt{1-\overline{\alpha}_t}\epsilon_0}{\sqrt{\overline{\alpha}_t}}}{1-\overline{\alpha}_t}",
+            r"\mu_q(x_t, x_0) = \frac{\sqrt{\alpha_t}(1-\overline{\alpha_{t-1}})x_t + \sqrt{\overline{\alpha_{t-1}}}(1-\alpha_t)\frac{x_t - \sqrt{1-\overline{\alpha_t}}\epsilon_0}{\sqrt{\overline{\alpha_t}}}}{1-\overline{\alpha_t}}",
+            font_size=28
+        )
+
+        eq_96 = MathTex(
+            r"\mu_q(x_t, x_0) = \frac{\sqrt{\alpha_t}(1-\overline{\alpha_{t-1}})x_t + \sqrt{\overline{\alpha_{t-1}}}(1-\alpha_t)\frac{x_t - \sqrt{1-\overline{\alpha_t}}\epsilon_0}{\sqrt{\alpha_t} \sqrt{\overline{\alpha_{t-1}}}}}{1-\overline{\alpha_t}}",
+            font_size=28
+        )
+
+        # box1 = SurroundingRectangle(eq_73[0][45:58], color=RED, buff=0.05)  # denominator of first fraction
+        alpha_t_1_box1 = SurroundingRectangle(eq_96[0][27:33], color=RED)
+        alpha_t_1_box2 = SurroundingRectangle(eq_96[0][56:59], color=RED)
+
+        eq_97 = MathTex(
+            r"\mu_q(x_t, x_0) = \frac{\sqrt{\alpha_t}(1-\overline{\alpha_{t-1}})x_t + (1-\alpha_t)(x_t - \sqrt{1-\overline{\alpha_t}}\epsilon_0)}{\sqrt{\alpha_t}(1-\overline{\alpha_t})}",
             font_size=28
         )
         
         self.play(Write(desc))
-        self.play(Write(eq_95))
+        self.play(Write(eq_94))
+        self.wait(1)
+        self.play(ReplacementTransform(eq_94, eq_95))
         self.wait(3)
-        self.play(FadeOut(desc), FadeOut(eq_95))
-    
-    def show_final_mean_form(self):
-        desc = Text("Final Simplified Mean Expression", font_size=36, color=YELLOW)
-        desc.to_edge(UP)
+
+        self.play(ReplacementTransform(eq_95, eq_96))
+        self.wait(2)
+
+        self.play(Write(alpha_t_1_box1))
+        self.play(Write(alpha_t_1_box2))
+        self.wait(2)
+        self.play(FadeOut(alpha_t_1_box1), FadeOut(alpha_t_1_box2))
+
+        self.play(ReplacementTransform(eq_96, eq_97))
+        self.wait(3)
+
+        self.play(FadeOut(desc))
+
+        return eq_97
+  
+    def show_expanding_and_separating(self, eq_97):
+        desc = Text("Expanding and Separating x_t and ε_0 Terms", font_size=30, color=GREEN)
+        desc.to_edge(3 * DOWN)
         
-        eq_102 = MathTex(
-            r"\mu_q(x_t, x_0) = \frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{1-\alpha_t}{\sqrt{1-\overline{\alpha}_t}}\epsilon_0\right)",
-            font_size=40,
-            color=GOLD
+        # Equation 98 - Expanded form
+        eq_98 = MathTex(
+            r"\mu_q(x_t, x_0) = \frac{\alpha_t x_t - \alpha_t\overline{\alpha_{t-1}}x_t + x_t - \sqrt{1-\overline{\alpha_t}} \epsilon_0 - \alpha_t x_t + \alpha_t \sqrt{1-\overline{\alpha_t}} \epsilon_0}{\sqrt{\alpha_t}(1-\overline{\alpha_t})}",
+            font_size=26
         )
         
-        note = Text(
-            "This is the 'perfect' denoising mean we want our model to learn!",
-            font_size=28,
-            color=GREEN
-        ).shift(DOWN*2)
+        self.play(Write(desc))
+        # self.play(Write(eq_98))
+        self.play(ReplacementTransform(eq_97, eq_98))
+        self.wait(2)
+
+        # Visually highlight the canceling α_t·x_t terms
+        # First, identify and box the terms that will cancel
+        # Note: Adjust indices based on actual MathTex parsing
+        cancel_note = Text("Watch the α_t·x_t terms:", font_size=28, color=YELLOW)
+        cancel_note.next_to(eq_98, DOWN, buff=0.5)
+        
+        self.play(FadeIn(cancel_note, shift=UP))
+        self.wait(1)
+        
+        # Create boxes around the canceling terms
+        # Positive α_t·x_t (approximate position in numerator)
+        box1 = SurroundingRectangle(eq_98[0][10:13], color=RED, buff=0.05)
+        label1 = MathTex(r"+\alpha_tx_t", font_size=32, color=RED)
+        label1.next_to(box1, UP, buff=0.2)
+        
+        # Negative α_t·x_t (approximate position in numerator)
+        box2 = SurroundingRectangle(eq_98[0][38:42], color=BLUE, buff=0.05)
+        label2 = MathTex(r"-\alpha_tx_t", font_size=32, color=BLUE)
+        label2.next_to(box2, DOWN, buff=0.2)
+        
+        self.play(Create(box1), FadeIn(label1, shift=DOWN))
+        self.wait(1)
+        self.play(Create(box2), FadeIn(label2, shift=UP))
+        self.wait(1)
+        
+        # Show cancellation with cross marks
+        cross1 = Line(box1.get_corner(DL), box1.get_corner(UR), color=RED, stroke_width=4)
+        cross2 = Line(box2.get_corner(DL), box2.get_corner(UR), color=BLUE, stroke_width=4)
+        
+        cancel_text = Text("These cancel!", font_size=28, color=GREEN)
+        cancel_text.next_to(cancel_note, DOWN, buff=0.3)
+        
+        self.play(Create(cross1), Create(cross2))
+        self.play(FadeIn(cancel_text, shift=UP))
+        self.wait(2)
+        
+        self.play(
+            FadeOut(box1), FadeOut(label1), FadeOut(cross1),
+            FadeOut(box2), FadeOut(label2), FadeOut(cross2),
+            FadeOut(cancel_note), FadeOut(cancel_text)
+        )
+        
+        # Equation 99 - Separated into x_t and ε_0 terms
+        desc2 = Text("Separating into x_t and ε_0 Coefficients", font_size=30, color=YELLOW)
+        desc2.to_edge(DOWN * 3)
+        
+        self.play(ReplacementTransform(desc, desc2))
+        
+        eq_99 = MathTex(
+            r"\mu_q(x_t, x_0) = \frac{1-\overline{\alpha_t}}{\sqrt{\alpha_t}(1-\overline{\alpha_t})}x_t + \frac{-\sqrt{1-\overline{\alpha_t}} + \alpha_t\sqrt{1-\overline{\alpha_t}}}{\sqrt{\alpha_t}(1-\overline{\alpha_t})} \epsilon_0",
+            font_size=30
+        )
+        
+        self.play(TransformMatchingTex(eq_98, eq_99))
+        self.wait(3)
+        self.play(FadeOut(desc2))
+
+        return eq_99
+        
+    def show_cancellation_steps(self, eq_99):
+        desc = Text("Canceling Common Terms", font_size=30, color=GREEN)
+        desc.to_edge(DOWN * 3)
+        
+        # Equation 100 - Before cancellation, showing what will cancel
+        eq_100 = MathTex(
+            r"\mu_q(x_t, x_0) = \frac{1-\overline{\alpha_t}}{\sqrt{\alpha_t}(1-\overline{\alpha_t})}x_t - \frac{(1-\alpha_t)\sqrt{1-\overline{\alpha_t}}}{\sqrt{\alpha_t}(1-\overline{\alpha_t})} \epsilon_0",
+            font_size=32
+        )
+        
+        self.play(Write(desc))
+        # self.play(Write(eq_100))
+        self.play(TransformMatchingTex(eq_99, eq_100))
+        self.wait(1)
+        
+        # Highlight cancellations
+        box1 = SurroundingRectangle(eq_100[0][10:14], color=RED, buff=0.05)
+        box2 = SurroundingRectangle(eq_100[0][18:19], color=RED, buff=0.05)
+        # cancel_x = Text("In x_t coefficient: (1-ᾱ_t) cancels!", font_size=24, color=BLUE)
+        # cancel_x.next_to(eq_100, DOWN, buff=0.3)
+        
+        # cancel_eps = Text("In ε_0 coefficient: √(1-ᾱ_t) cancels!", font_size=24, color=GREEN)
+        # cancel_eps.next_to(cancel_x, DOWN, buff=0.2)
+        
+        self.play(Write(box1), Write(box2))
+        # self.wait(1)
+        # self.play(FadeIn(cancel_eps, shift=UP))
+        self.wait(2)
+        
+        self.play(FadeOut(box1), FadeOut(box2))
+        
+        # Equation 101 - After cancellation
+        desc2 = Text("After Cancellation", font_size=36, color=YELLOW)
+        desc2.to_edge(UP)
+        
+        self.play(ReplacementTransform(desc, desc2))
+        
+        eq_101 = MathTex(
+            r"= \frac{1}{\sqrt{\alpha_t}}x_t - \frac{1-\alpha_t}{\sqrt{\alpha_t}\sqrt{1-\overline{\alpha_t}}}\epsilon_0",
+            font_size=38
+        )
+        
+        self.play(TransformMatchingTex(eq_100, eq_101))
+        self.wait(2)
+        self.play(FadeOut(desc2))
+
+        return eq_101
+    
+    def show_final_mean_form(self, eq_101):
+        desc = Text("Factoring Out 1/√α_t", font_size=36, color=YELLOW)
+        desc.to_edge(UP)
+        
+        # Equation 102 - Final form
+        eq_102 = MathTex(
+            r"\mu_q(x_t, x_0) = \frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{1-\alpha_t}{\sqrt{1-\overline{\alpha_t}}}\epsilon_0\right)",
+            font_size=42,
+            color=GOLD
+        ).shift(UP*0.5)
         
         self.play(Write(desc))
         self.play(Write(eq_102))
         self.wait(2)
+        
+        # Highlight the structure
+        box1 = SurroundingRectangle(eq_102[0][0:5], color=BLUE, buff=0.05)
+        label1 = Text("Scale factor", font_size=22, color=BLUE).next_to(box1, LEFT, buff=0.3)
+        
+        box2 = SurroundingRectangle(eq_102[0][6:8], color=GREEN, buff=0.05)
+        label2 = Text("Current noisy image", font_size=22, color=GREEN).next_to(box2, DOWN, buff=0.3)
+        
+        box3 = SurroundingRectangle(eq_102[0][9:18], color=PURPLE, buff=0.05)
+        label3 = Text("Predicted noise (scaled)", font_size=22, color=PURPLE).next_to(box3, RIGHT, buff=0.3)
+        
+        self.play(Create(box1), FadeIn(label1))
+        self.wait(1)
+        self.play(Create(box2), FadeIn(label2))
+        self.wait(1)
+        self.play(Create(box3), FadeIn(label3))
+        self.wait(2)
+        
+        self.play(
+            FadeOut(box1), FadeOut(label1),
+            FadeOut(box2), FadeOut(label2),
+            FadeOut(box3), FadeOut(label3)
+        )
+        
+        # Key insight
+        note = Text(
+            "This is the 'perfect' denoising mean we want our model to learn!",
+            font_size=28,
+            color=GREEN
+        ).shift(DOWN*1.5)
+        
+        model_eq = MathTex(
+            r"\mu_\theta(x_t, t) = \frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{1-\alpha_t}{\sqrt{1-\overline{\alpha_t}}}\epsilon_\theta(x_t, t)\right)",
+            font_size=36,
+            color=RED
+        ).shift(DOWN*2.5)
+        
+        model_note = Text("Our model predicts ε_θ(x_t, t) ≈ ε_0", font_size=24, color=RED)
+        model_note.next_to(model_eq, DOWN, buff=0.3)
+        
         self.play(FadeIn(note, shift=UP))
+        self.wait(2)
+        self.play(Write(model_eq))
+        self.play(FadeIn(model_note, shift=UP))
         self.wait(3)
-        self.play(FadeOut(desc), FadeOut(eq_102), FadeOut(note))
-    
+        
+        self.play(FadeOut(desc), FadeOut(eq_102), FadeOut(note), 
+                  FadeOut(model_eq), FadeOut(model_note))
+  
     def show_sampling_algorithm(self):
         title = Text("DDPM Sampling Algorithm", font_size=44, color=GOLD)
         title.to_edge(UP)
@@ -3884,7 +4092,7 @@ class DDPMGaussianSampling(Scene):
         step4_title.shift(UP*2)
         
         denoising_eq = MathTex(
-            r"x_{t-1} = \frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{1-\alpha_t}{\sqrt{1-\overline{\alpha}_t}}\epsilon_\theta(x_t, t)\right) + \sigma_t z",
+            r"x_{t-1} = \frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{1-\alpha_t}{\sqrt{1-\overline{\alpha_t}}}\epsilon_\theta(x_t, t)\right) + \sigma_t z",
             font_size=32
         ).shift(UP*0.5)
         
