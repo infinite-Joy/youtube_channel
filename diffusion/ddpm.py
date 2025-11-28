@@ -4325,26 +4325,26 @@ class DDPMTrainingAlgorithm(Scene):
         self.show_kl_divergence_setup()
         
         # Part 2: Applying to our problem
-        self.show_applying_kl_to_loss()
         self.show_kl_divergence_general()
+        self.show_applying_kl_to_loss()
         
         # Part 3: Simplifying the loss
-        self.show_kl_expansion()
-        #self.show_canceling_terms()
-        #self.show_variance_substitution()
+        kl_expanded = self.show_kl_expansion()
+        result = self.show_canceling_terms(kl_expanded)
+        self.show_variance_substitution(result)
         
         ## Part 4: Substituting means
-        #self.show_substituting_means()
-        #self.show_expanding_means()
-        #self.show_canceling_xt_terms()
+        self.show_substituting_means()
+        simplified = self.show_expanding_means()
+        self.show_canceling_xt_terms(simplified)
         
         ## Part 5: Factoring and final form
-        #self.show_factoring_epsilon_terms()
-        #self.show_coefficient_squared()
-        #self.show_final_loss_form()
+        self.show_factoring_epsilon_terms()
+        self.show_coefficient_squared()
+        self.show_final_loss_form()
         
         ## Part 6: Training algorithm
-        #self.show_training_algorithm()
+        self.show_training_algorithm()
         
     def show_title(self):
         title = Text("DDPM Training Algorithm", font_size=48, color=BLUE)
@@ -4397,7 +4397,7 @@ class DDPMTrainingAlgorithm(Scene):
         self.play(FadeOut(desc), FadeOut(setup))
     
     def show_applying_kl_to_loss(self):
-        desc = Text("From Denoising Loss Term (Eq. 73)", font_size=36, color=YELLOW)
+        desc = Text("From Denoising Loss Term", font_size=36, color=YELLOW)
         desc.to_edge(UP)
 
         loss_term = MathTex(
@@ -4408,7 +4408,7 @@ class DDPMTrainingAlgorithm(Scene):
         
         # Equivalent form
         #equiv = MathTex(
-        #    r"= \argmin_\theta D_{KL}(\mathcal{N}(x_{t-1}; \mu_q, \Sigma_q(t)) \parallel \mathcal{N}(x_{t-1}; \mu_\theta, \Sigma_q(t)))",
+        #    r"= \arg\min_\theta D_{KL}(\mathcal{N}(x_{t-1}; \mu_q, \Sigma_q(t)) \parallel \mathcal{N}(x_{t-1}; \mu_\theta, \Sigma_q(t)))",
         #    font_size=36
         #).shift(DOWN*1)
         equiv = MathTex(
@@ -4416,7 +4416,7 @@ class DDPMTrainingAlgorithm(Scene):
             r"\mathcal{N}(x_{t-1}; \mu_q, \Sigma_q(t))",
             r"\parallel", 
             r"\mathcal{N}(x_{t-1}; \mu_\theta, \Sigma_q(t)))",
-            font_size=60
+            font_size=50
         ).arrange_submobjects(RIGHT, buff=0.1).shift(DOWN*1)
         
         self.play(Write(desc))
@@ -4446,62 +4446,99 @@ class DDPMTrainingAlgorithm(Scene):
         desc.to_edge(UP)
         
         kl_expanded = MathTex(
-            r"= \argmin_\theta \frac{1}{2}\left[\begin{array}{c}",
-            r"\log\frac{\Sigma_q(t)}{\Sigma_q(t)} - d + tr(\Sigma_q(t)^{-1}\Sigma_q(t)) \\",
-            r"+ (\mu_\theta - \mu_q)^T\Sigma_q(t)^{-1}(\mu_\theta - \mu_q)",
-            r"\end{array}\right]",
-            font_size=32
-        )
+            r"\arg\min_{\theta}\frac{1}{2} \left[ ",
+            r"\log \frac{|\Sigma_q(t)|}{|\Sigma_q(t)|} - d + \text{tr}\left(\Sigma_q(t)^{-1}\Sigma_q(t)\right) ",
+            r"+ (\mu_\theta - \mu_q)^T\Sigma_q(t)^{-1}(\mu_\theta - \mu_q) \right]",
+            font_size=50
+        ).arrange_submobjects(DOWN, buff=0.1).shift(UP)
         
         self.play(Write(desc))
         self.play(Write(kl_expanded))
         self.wait(2)
-        self.play(FadeOut(desc), FadeOut(kl_expanded))
+        self.play(FadeOut(desc))
+
+        return kl_expanded
     
-    def show_canceling_terms(self):
+    def show_canceling_terms(self, kl_expanded):
         desc = Text("Canceling Terms", font_size=36, color=YELLOW)
         desc.to_edge(UP)
-        
-        # Show which terms cancel
-        notes = VGroup(
-            MathTex(r"\log\frac{\Sigma_q(t)}{\Sigma_q(t)} = \log 1 = 0 \quad \text{(cancels)}", font_size=32, color=RED),
-            MathTex(r"tr(\Sigma_q(t)^{-1}\Sigma_q(t)) = tr(I) = d \quad \text{(constant)}", font_size=32, color=BLUE),
-            MathTex(r"-d + d = 0 \quad \text{(cancel each other)}", font_size=32, color=GREEN)
-        ).arrange(DOWN, buff=0.5).shift(UP*0.5)
-        
-        result = MathTex(
-            r"\Rightarrow \argmin_\theta \frac{1}{2}(\mu_\theta - \mu_q)^T\Sigma_q(t)^{-1}(\mu_\theta - \mu_q)",
-            font_size=36,
-            color=GOLD
-        ).shift(DOWN*1.5)
-        
         self.play(Write(desc))
-        self.play(FadeIn(notes, shift=UP, lag_ratio=0.2))
+
+        note1 = MathTex(r"\log\frac{\Sigma_q(t)}{\Sigma_q(t)} = \log 1 = 0 \quad \text{(cancels)}", font_size=32, color=RED)
+        note1.next_to(kl_expanded, DOWN, buff=1.)
+        self.play(FadeIn(note1, lag_ratio=0.2))
         self.wait(2)
+
+        kl_expanded1 = MathTex(
+            r"\arg\min_{\theta}\frac{1}{2} \left[ ",
+            r"- d + \text{tr}\left(\Sigma_q(t)^{-1}\Sigma_q(t)\right) ",
+            r"+ (\mu_\theta - \mu_q)^T\Sigma_q(t)^{-1}(\mu_\theta - \mu_q) \right]",
+            font_size=50
+        ).arrange_submobjects(DOWN, buff=0.5).shift(UP)
+        self.play(ReplacementTransform(kl_expanded, kl_expanded1))
+        self.play(FadeOut(note1))
+        self.wait(2)
+
+        note2 = MathTex(r"tr(\Sigma_q(t)^{-1}\Sigma_q(t)) = tr(I) = d \quad \text{(constant)}", font_size=32, color=BLUE)
+        note2.next_to(kl_expanded1, DOWN, buff=1.)
+        self.play(FadeIn(note2, lag_ratio=0.2))
+        self.wait(2)
+
+        kl_expanded2 = MathTex(
+            r"\arg\min_{\theta}\frac{1}{2} \left[ ",
+            r"- d + d ",
+            r"+ (\mu_\theta - \mu_q)^T\Sigma_q(t)^{-1}(\mu_\theta - \mu_q) \right]",
+            font_size=50
+        ).arrange_submobjects(DOWN, buff=0.5).shift(UP)
+        self.play(ReplacementTransform(kl_expanded1, kl_expanded2))
+        self.play(FadeOut(note2))
+        self.wait(2)
+
+        note3 = MathTex(r"-d + d = 0 \quad \text{(cancel each other)}", font_size=32, color=GREEN)
+        note3.next_to(kl_expanded2, DOWN, buff=1.)
+        self.play(FadeIn(note3, lag_ratio=0.2))
+        self.wait(2)
+
+        kl_expanded3 = MathTex(
+            r"\arg\min_{\theta}\frac{1}{2} \left[ (\mu_\theta - \mu_q)^T\Sigma_q(t)^{-1}(\mu_\theta - \mu_q) \right]",
+            font_size=70
+        )
+        self.play(ReplacementTransform(kl_expanded2, kl_expanded3))
+        self.play(FadeOut(note3))
+        self.wait(2)
+        self.play(FadeOut(kl_expanded3))
+
+        result = MathTex(
+            r"\Rightarrow \arg\min_\theta \frac{1}{2}(\mu_\theta - \mu_q)^T\Sigma_q(t)^{-1}(\mu_\theta - \mu_q)",
+            font_size=70,
+            color=GOLD
+        )
         self.play(Write(result))
         self.wait(2)
-        self.play(FadeOut(desc), FadeOut(notes), FadeOut(result))
+        self.play(FadeOut(desc), FadeOut(result))
+
+        return None
     
-    def show_variance_substitution(self):
+    def show_variance_substitution(self, result):
         desc = Text("Substituting Σ_q(t) = σ²_q(t)I", font_size=36, color=YELLOW)
         desc.to_edge(UP)
         
         before = MathTex(
-            r"= \argmin_\theta \frac{1}{2}(\mu_\theta - \mu_q)^T(\sigma_q^2(t)I)^{-1}(\mu_\theta - \mu_q)",
-            font_size=34
+            r"= \arg\min_\theta \frac{1}{2}(\mu_\theta - \mu_q)^T(\sigma_q^2(t)I)^{-1}(\mu_\theta - \mu_q)",
+            font_size=60
         ).shift(UP*1)
         
         after = MathTex(
-            r"= \argmin_\theta \frac{1}{2\sigma_q^2(t)}[(\mu_\theta - \mu_q)^T(\mu_\theta - \mu_q)]",
-            font_size=34
+            r"= \arg\min_\theta \frac{1}{2\sigma_q^2(t)}[(\mu_\theta - \mu_q)^T(\mu_\theta - \mu_q)]",
+            font_size=60
         ).shift(DOWN*0.5)
         
         # Define L2 norm
         norm_def = MathTex(
-            r"= \argmin_\theta \frac{1}{2\sigma_q^2(t)}|||\mu_\theta - \mu_q||_2^2",
-            font_size=34,
+            r"= \arg\min_\theta \frac{1}{2\sigma_q^2(t)}||\mu_\theta - \mu_q||_2^2",
+            font_size=60,
             color=GREEN
-        ).shift(DOWN*1.5)
+        ).shift(DOWN*2)
         
         self.play(Write(desc))
         self.play(Write(before))
@@ -4518,16 +4555,16 @@ class DDPMTrainingAlgorithm(Scene):
         
         # Recall the means
         mu_q = MathTex(
-            r"\mu_q(x_t, x_0) = \frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}}\epsilon_0\right)",
-            font_size=32,
+            r"\mu_q(x_t, x_0) = \frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{1-\alpha_t}{\sqrt{1-\overline{\alpha_t}}}\epsilon_0\right)",
+            font_size=60,
             color=BLUE
         ).shift(UP*1.5)
         
         mu_theta = MathTex(
-            r"\mu_\theta(x_t, t) = \frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}}\epsilon_\theta(x_t, t)\right)",
-            font_size=32,
+            r"\mu_\theta(x_t, t) = \frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{1-\alpha_t}{\sqrt{1-\overline{\alpha_t}}}\epsilon_\theta(x_t, t)\right)",
+            font_size=60,
             color=GREEN
-        ).shift(UP*0.2)
+        ).shift(DOWN)
         
         self.play(Write(desc))
         self.play(Write(mu_q))
@@ -4541,30 +4578,29 @@ class DDPMTrainingAlgorithm(Scene):
         desc.to_edge(UP)
         
         expansion = MathTex(
-            r"= \argmin_\theta \frac{1}{2\sigma_q^2(t)}\left||",
-            r"\frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}}\epsilon_\theta(x_t, t)\right)",
-            r"- \frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{1-\alpha_t}{\sqrt{1-\bar{\alpha}_t}}\epsilon_0\right)",
-            r"\right||_2^2",
-            font_size=28
-        ).shift(UP*0.5)
+            r"= \arg\min_\theta \frac{1}{2\sigma_q^2(t)}\lVert\frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{1-\alpha_t}{\sqrt{1-\overline{\alpha_t}}}\epsilon_\theta(x_t, t)\right)",
+            r"- \frac{1}{\sqrt{\alpha_t}}\left(x_t - \frac{1-\alpha_t}{\sqrt{1-\overline{\alpha_t}}}\epsilon_0\right)\right\rVert_2^2",
+            font_size=50
+        ).arrange_submobjects(DOWN, buff=0.2).shift(UP)
         
         # Show simplification
         simplified = MathTex(
-            r"= \argmin_\theta \frac{1}{2\sigma_q^2(t)}\left||",
-            r"\frac{x_t}{\sqrt{\alpha_t}} - \frac{(1-\alpha_t)}{\sqrt{\alpha_t}\sqrt{1-\bar{\alpha}_t}}\epsilon_\theta(x_t, t)",
-            r"- \frac{x_t}{\sqrt{\alpha_t}} + \frac{(1-\alpha_t)}{\sqrt{\alpha_t}\sqrt{1-\bar{\alpha}_t}}\epsilon_0",
-            r"\right||_2^2",
-            font_size=26
-        ).shift(DOWN*1.2)
+            r"= \arg\min_\theta \frac{1}{2\sigma_q^2(t)}\lVert\frac{x_t}{\sqrt{\alpha_t}} - \frac{(1-\alpha_t)}{\sqrt{\alpha_t}\sqrt{1-\overline{\alpha_t}}}\epsilon_\theta(x_t, t)",
+            r"- \frac{x_t}{\sqrt{\alpha_t}} + \frac{(1-\alpha_t)}{\sqrt{\alpha_t}\sqrt{1-\overline{\alpha_t}}}\epsilon_0\rVert_2^2",
+            font_size=50
+        ).arrange_submobjects(DOWN, buff=0.2).shift(DOWN*2)
         
         self.play(Write(desc))
         self.play(Write(expansion))
         self.wait(2)
         self.play(Write(simplified))
         self.wait(2)
-        self.play(FadeOut(desc), FadeOut(expansion), FadeOut(simplified))
+        self.play(FadeOut(desc), FadeOut(expansion))
+
+        self.play(simplified.animate.shift(3*UP))
+        return simplified
     
-    def show_canceling_xt_terms(self):
+    def show_canceling_xt_terms(self, simplified):
         desc = Text("Canceling x_t Terms", font_size=36, color=YELLOW)
         desc.to_edge(UP)
         
@@ -4572,40 +4608,38 @@ class DDPMTrainingAlgorithm(Scene):
             r"\frac{x_t}{\sqrt{\alpha_t}} - \frac{x_t}{\sqrt{\alpha_t}} = 0 \quad \text{(cancels!)}",
             font_size=40,
             color=RED
-        ).shift(UP*1)
+        ).next_to(simplified, DOWN, buff=1.0)
         
-        result = MathTex(
-            r"= \argmin_\theta \frac{1}{2\sigma_q^2(t)}\left||",
-            r"\frac{1-\alpha_t}{\sqrt{\alpha_t}\sqrt{1-\bar{\alpha}_t}}(\epsilon_0 - \epsilon_\theta(x_t, t))",
-            r"\right||_2^2",
-            font_size=32,
+        eq_114 = MathTex(
+            r"= \arg\min_\theta \frac{1}{2\sigma_q^2(t)}\lVert\frac{1-\alpha_t}{\sqrt{\alpha_t}\sqrt{1-\overline{\alpha_t}}}(\epsilon_0 - \epsilon_\theta(x_t, t))\rVert_2^2",
+            font_size=50,
             color=GREEN
-        ).shift(DOWN*1)
+        )
         
         self.play(Write(desc))
         self.play(Write(note))
         self.wait(2)
-        self.play(Write(result))
+        self.play(ReplacementTransform(simplified, eq_114))
         self.wait(2)
-        self.play(FadeOut(desc), FadeOut(note), FadeOut(result))
+        self.play(FadeOut(desc), FadeOut(note))
+
+        return eq_114
     
     def show_factoring_epsilon_terms(self):
         desc = Text("Factoring Out the Coefficient", font_size=36, color=YELLOW)
         desc.to_edge(UP)
         
         before = MathTex(
-            r"= \argmin_\theta \frac{1}{2\sigma_q^2(t)}\left||",
-            r"\frac{1-\alpha_t}{\sqrt{\alpha_t}\sqrt{1-\bar{\alpha}_t}}(\epsilon_0 - \epsilon_\theta(x_t, t))",
-            r"\right||_2^2",
-            font_size=32
+            r"= \arg\min_\theta \frac{1}{2\sigma_q^2(t)}\lVert\frac{1-\alpha_t}{\sqrt{\alpha_t}\sqrt{1-\overline{\alpha_t}}}(\epsilon_0 - \epsilon_\theta(x_t, t))\rVert_2^2",
+            font_size=50
         ).shift(UP*1)
         
         # Extract the coefficient
         coeff = MathTex(
-            r"= \argmin_\theta \frac{1}{2\sigma_q^2(t)} \cdot ",
-            r"\left(\frac{1-\alpha_t}{\sqrt{\alpha_t}\sqrt{1-\bar{\alpha}_t}}\right)^2",
+            r"= \arg\min_\theta \frac{1}{2\sigma_q^2(t)} \cdot ",
+            r"\left(\frac{1-\alpha_t}{\sqrt{\alpha_t}\sqrt{1-\overline{\alpha_t}}}\right)^2",
             r"||(\epsilon_0 - \epsilon_\theta(x_t, t))||_2^2",
-            font_size=28
+            font_size=50
         ).shift(DOWN*1)
         
         self.play(Write(desc))
@@ -4621,25 +4655,31 @@ class DDPMTrainingAlgorithm(Scene):
         
         # Show the squaring
         coeff_squared = MathTex(
-            r"\left(\frac{1-\alpha_t}{\sqrt{\alpha_t}\sqrt{1-\bar{\alpha}_t}}\right)^2 = ",
-            r"\frac{(1-\alpha_t)^2}{\alpha_t(1-\bar{\alpha}_t)}",
-            font_size=38,
+            r"\left(\frac{1-\alpha_t}{\sqrt{\alpha_t}\sqrt{1-\overline{\alpha_t}}}\right)^2 = ",
+            r"\frac{(1-\alpha_t)^2}{\alpha_t(1-\overline{\alpha_t})}",
+            font_size=50,
             color=BLUE
         ).shift(UP*1.5)
         
         # Final form
         final_loss = MathTex(
-            r"= \argmin_\theta \frac{(1-\alpha_t)^2}{2\sigma_q^2(t)\alpha_t(1-\bar{\alpha}_t)} ||(\epsilon_0 - \epsilon_\theta(x_t, t))||_2^2",
-            font_size=32,
+            r"= \arg\min_\theta \frac{(1-\alpha_t)^2}{2\sigma_q^2(t)\alpha_t(1-\overline{\alpha_t})} ||(\epsilon_0 - \epsilon_\theta(x_t, t))||_2^2",
+            font_size=50,
             color=GOLD
         ).shift(DOWN*1)
         
         # Replace with β_t
         beta_note = MathTex(
-            r"\text{Note: } \beta_t = \frac{(1-\alpha_t)^2}{\alpha_t(1-\bar{\alpha}_t)} \text{ (from Eq. 7)}",
+            r"\text{Note: } \beta_t = 1-\alpha_t",
             font_size=28,
             color=GREEN
         ).shift(DOWN*2.2)
+
+        final_loss1 = MathTex(
+            r"= \arg\min_\theta \frac{\beta_t^2}{2\sigma_q^2(t)\alpha_t(1-\overline{\alpha_t})} ||(\epsilon_0 - \epsilon_\theta(x_t, t))||_2^2",
+            font_size=50,
+            color=GOLD
+        ).shift(DOWN*1)
         
         self.play(Write(desc))
         self.play(Write(coeff_squared))
@@ -4647,8 +4687,10 @@ class DDPMTrainingAlgorithm(Scene):
         self.play(Write(final_loss))
         self.wait(1)
         self.play(FadeIn(beta_note, shift=UP))
+        self.wait(1)
+        self.play(ReplacementTransform(final_loss, final_loss1))
         self.wait(2)
-        self.play(FadeOut(desc), FadeOut(coeff_squared), FadeOut(final_loss), FadeOut(beta_note))
+        self.play(FadeOut(desc), FadeOut(coeff_squared), FadeOut(final_loss1), FadeOut(beta_note))
     
     def show_final_loss_form(self):
         desc = Text("Final Loss Function Form", font_size=40, color=YELLOW)
@@ -4656,23 +4698,23 @@ class DDPMTrainingAlgorithm(Scene):
         
         # Using beta_t
         loss_with_beta = MathTex(
-            r"= \argmin_\theta \frac{1}{2\sigma_q^2(t)} \frac{\beta_t^2}{||(\epsilon_0 - \epsilon_\theta(\sqrt{\bar{\alpha}_t}x_0 + \sqrt{1-\bar{\alpha}_t}\epsilon_0, t))||_2^2}",
-            font_size=28
-        ).shift(UP*0.5)
+            r"= \arg\min_\theta \frac{1}{2\sigma_q^2(t)} \frac{\beta_t^2}{\alpha_t(1)}{||(\epsilon_0 - \epsilon_\theta(\sqrt{\overline{\alpha_t}}x_0 + \sqrt{1-\overline{\alpha_t}}\epsilon_0, t))||_2^2}",
+            font_size=50
+        ).shift(UP*1)
         
         # Substitute x_t = sqrt(bar_alpha_t) * x_0 + sqrt(1 - bar_alpha_t) * epsilon_0
         substitute = MathTex(
-            r"\text{From Eq. 14: } x_t = \sqrt{\bar{\alpha}_t}x_0 + \sqrt{1-\bar{\alpha}_t}\epsilon_0",
+            r"x_t = \sqrt{\overline{\alpha_t}}x_0 + \sqrt{1-\overline{\alpha_t}}\epsilon_0",
             font_size=28,
             color=BLUE
-        ).shift(DOWN*1)
+        ).next_to(loss_with_beta, DOWN, buff=0.5)
         
         # Final clean form
         final = MathTex(
-            r"= \argmin_\theta \frac{1}{2\sigma_q^2(t)} \frac{\beta_t^2}{||(\epsilon_0 - \epsilon_\theta(x_t, t))||_2^2}",
-            font_size=40,
+            r"= \arg\min_\theta \frac{\beta_t^2}{2\sigma_q^2(t)\alpha_t(1-\overline{\alpha_t})} ||(\epsilon_0 - \epsilon_\theta(x_t, t))||_2^2",
+            font_size=60,
             color=GOLD
-        ).shift(DOWN*2.2)
+        ).next_to(substitute, DOWN, buff=0.5)
         
         highlight = SurroundingRectangle(final, color=GOLD, buff=0.15)
         
@@ -4689,34 +4731,15 @@ class DDPMTrainingAlgorithm(Scene):
     def show_training_algorithm(self):
         title = Text("Algorithm 1: DDPM Training", font_size=44, color=GOLD)
         title.to_edge(UP)
-        
-        algo = VGroup(
-            MathTex(r"\textbf{repeat}", font_size=32),
-            MathTex(r"\quad \mathbf{x_0} \sim q(\mathbf{x_0})", font_size=32),
-            MathTex(r"\quad t \sim \text{Uniform}(\{1, \ldots, T\})", font_size=32),
-            MathTex(r"\quad \boldsymbol{\epsilon} \sim \mathcal{N}(0, I)", font_size=32),
-            MathTex(r"\quad \textbf{Take gradient descent step on}", font_size=32),
-            MathTex(r"\qquad \nabla_\theta ||\boldsymbol{\epsilon} - \boldsymbol{\epsilon}_\theta(\sqrt{\bar{\alpha}_t}\mathbf{x_0} + \sqrt{1-\bar{\alpha}_t}\boldsymbol{\epsilon}, t)||^2", font_size=28, color=RED),
-            MathTex(r"\textbf{until converged}", font_size=32),
-        ).arrange(DOWN, buff=0.4).shift(DOWN*0.5)
-        
+
+        training_algo = ImageMobject("training_algp.png")
+        training_algo.scale(0.8)
+
         self.play(Write(title))
-        self.play(FadeIn(algo, shift=UP, lag_ratio=0.15))
+        self.play(FadeIn(training_algo))
         self.wait(4)
         
-        # Breakdown
-        breakdown = VGroup(
-            Text("1. Sample clean image x_0", font_size=28, color=BLUE),
-            Text("2. Sample random timestep t", font_size=28, color=GREEN),
-            Text("3. Sample random noise ε", font_size=28, color=PURPLE),
-            Text("4. Predict noise and minimize difference", font_size=28, color=ORANGE),
-            Text("5. Repeat until convergence", font_size=28, color=GOLD)
-        ).arrange(DOWN, buff=0.3).shift(DOWN*3.5)
-        
-        self.play(FadeIn(breakdown, shift=UP, lag_ratio=0.1))
-        self.wait(3)
-        
-        self.play(FadeOut(title), FadeOut(algo), FadeOut(breakdown))
+        self.play(FadeOut(title), FadeOut(training_algo))
 
 
 # NARRATION
